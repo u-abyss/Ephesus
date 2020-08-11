@@ -3,48 +3,101 @@ import csv
 import numpy as np
 import pandas as pd
 from scipy import sparse
+from tqdm import tqdm
+from sklearn.metrics.pairwise import pairwise_distances
 
 u_data_org = pd.read_csv('./u.data', sep='\t', names=['user_id','item_id', 'rating', 'timestamp'])
 
 # ユーザ数✖️アイテム数の配列を作成する(R)
-shape = (u_data_org.max().loc['user_id'], u_data_org.max().loc['item_id'])
-R = np.zeros(shape)
-for i in u_data_org.index:
-    row = u_data_org.loc[i]
-    R[row['user_id'] -1 , row['item_id'] - 1] = row['rating']
+# shape = (u_data_org.max().loc['user_id'], u_data_org.max().loc['item_id'])
+# R = np.zeros(shape)
+# for i in u_data_org.index:
+#     row = u_data_org.loc[i]
+#     R[row['user_id'] -1 , row['item_id'] - 1] = row['rating']
+# print(R)
 
-def similarity(item1, item2):
-    # item1 と item2 のどちらも評価済であるユーザの集合
-    common = np.logical_and(item1 != 0, item2 != 0)
+# ユーザ数×評価値のデータ
+u_data_train = pd.read_csv('./ua.base', names=['user_id', 'item_id', 'rating', 'timestamp'], sep='\t')
+u_data_test = pd.read_csv('./ua.test', names=['user_id', 'item_id', 'rating', 'timestamp'], sep='\t')
 
-    v1 = item1[common]
-    v2 = item2[common]
+# アイテム同士の類似度を計算するために学習データをitem_id✖️user_idの行列に変換する
+items = u_data_org.sort_values('item_id').item_id.unique()
+users = u_data_org.user_id.unique()
+rating_matrix_item = np.zeros([len(items), len(users)])
 
-    sim = 0.0
-    # 共通評価者が 2以上という制約にしている
-    if v1.size > 1:
-        sim = 1.0 - np.cos(v1, v2)
+for item_id in tqdm(range(1, len(items))):
+    users_item = u_data_train[u_data_train['item_id'] == item_id].sort_values('user_id').user_id.unique()
+    for user_id in users_item:
+        try:
+            user_rate = u_data_train[(u_data_train['item_id'] == item_id) & (u_data_train['user_id'] == user_id)].loc[:, 'rating']
+        except:
+            user_rate = 0
+        rating_matrix_item[item_id-1, user_id-1] = user_rate
 
-    return sim
 
-def compute_item_similarities(R):
-    # n: movie counts
-    # return elements in a row (shape[1])
-    n = R.shape[1]
-    sims = np.zeros((n,n))
+# item x userの評価したかどうか{0, 1}がわかる行列作成
+rating_matrix_calc = rating_matrix_item.copy()
+rating_matrix_calc[rating_matrix_calc != 0] = 1
 
-    for i in range(n):
-        for j in range(i, n):
-            if i == j:
-                sim = 1.0
-            else:
-                # R[:, i] は アイテム i に関する全ユーザの評価を並べた列ベクトル
-                sim = similarity(R[:,i], R[:,j])
+# 評価していないアイテムに1が立つ行列を作成。後で使う
+rating_matrix_train = np.abs(rating_matrix_calc - 1)
 
-            sims[i][j] = sim
-            sims[j][i] = sim
+similarity_matrix = 1 - pairwise_distances(rating_matrix_item, metric='cosine')
+np.fill_diagonal(similarity_matrix, 0)
 
-    return sims
+# print(similarity_matrix)
 
-sims = compute_item_similarities(R)
-print(sims)
+user_id = 100
+hits = 0
+
+# 各ユーザの評価値を抜き出し「類似度×評価点」を算出
+rating_matrix_user = rating_matrix_item[:, user_id - 1]
+pred_rating_user = similarity_matrix * rating_matrix_user
+# アイテム（行）ごとに「類似度×評価点」を合計
+pred_rating_user = pred_rating_user.sum(axis=1)
+
+# ユーザが既に評価したアイテムのスコアはゼロに直す
+pred_rating_user_item = pred_rating_user * rating_matrix_train[:,user_id - 1]
+
+#ここからレコメンドされたアイテムがどれだけあっていたかを評価していく
+recommend_list = np.argsort(pred_rating_user_item)[::-1][:10] + 1
+purchase_list_user = u_data_test[u_data_test.user_id == user_id].loc[:, 'item_id'].unique()
+for item_id in recommend_list:
+    if item_id in purchase_list_user:
+        hits += 1
+pre = hits / 10.0
+
+# print('Recommend list:', recommend_list)
+# print('Test Rated list:', purchase_list_user)
+# print('Precision:', str(pre))
+
+precision_list = []
+recall_list = []
+user_list_test = u_data_test.sort_values('user_id').user_id.unique()
+
+for user_id in tqdm(user_list_test):
+    hits = 0
+    # 各ユーザの評価値を抜き出し「類似度×評価点」を算出
+    rating_matrix_user = rating_matrix_item[:, user_id - 1]
+    pred_rating_user = similarity_matrix * rating_matrix_user
+
+    # アイテム（行）ごとに「類似度×評価点」を合計
+    pred_rating_user_item = pred_rating_user * rating_matrix_train[:,user_id - 1]
+
+    # ユーザが既に評価したアイテムのスコアはゼロに直す
+    pred_rating_user_item[np.isnan(pred_rating_user_item)] = 0
+
+    #ここからレコメンドされたアイテムがどれだけあっていたかを評価していく
+    recommend_list = np.argsort(pred_rating_user_item)[::-1][:10] + 1
+    purchase_list_user = u_data_test[u_data_test.user_id == user_id].loc[:, 'item_id'].unique()
+    if len(purchase_list_user) == 0:
+        continue
+    for item_id in recommend_list:
+        if item_id in purchase_list_user:
+            hits += 1
+    pre = hits / 10.0
+    precision_list.append(pre)
+
+# 全体の精度検証
+precision = sum(precision_list) / len(precision_list)
+print('Precision:', precision)
