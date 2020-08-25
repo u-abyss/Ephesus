@@ -16,7 +16,6 @@ users = u_data_org.user_id.unique()
 # アイテム数✖️ユーザ数の0で初期化された２次元配列を生成する
 rating_matrix_item = np.zeros([len(items), len(users)])
 
-
 # 各アイテムのユーザごとの評価の配列
 # 列がユーザ,　行がアイテム
 for item_id in range(1, len(items)):
