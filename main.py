@@ -26,11 +26,11 @@ movie_description_org = pd.read_csv(
 items = u_data_org.sort_values('item_id').item_id.unique()
 users = u_data_org.user_id.unique()
 # 各アイテムのユーザごとの評価の配列る
-shape = (u_data_org.max().loc['user_id'], u_data_org.max().loc['item_id'])
+shape = (u_data_org.max().loc['item_id'], u_data_org.max().loc['user_id'])
 rating_matrix = np.zeros(shape)
 for i in u_data_org.index:
     row = u_data_org.loc[i]
-    rating_matrix[row['user_id'] -1 , row['item_id'] - 1] = row['rating']
+    rating_matrix[row['item_id'] -1 , row['user_id'] - 1] = row['rating']
 
 # userがアイテムを評価したがどうかがわかる{0, 1}の行列を作成
 is_rated_matrix = rating_matrix.copy()
@@ -40,30 +40,27 @@ is_rated_matrix[is_rated_matrix != 0] = 1
 similarity_matrix = 1 - pairwise_distances(rating_matrix, metric='cosine')
 np.fill_diagonal(similarity_matrix, 0) # 対角線上の要素を0に上書きする
 
+similar_movie_matrix = []
+similar_movies = []
 criteria_value = 0.4
+for idx, i in enumerate(similarity_matrix):
+    similar_movies = []
+    for index, review_point in enumerate(i):
+        if review_point >= criteria_value:
+            similar_movies.append(index+1)
+    similar_movies.insert(0, idx+1)
+    similar_movie_matrix.append(similar_movies)
+# print(similar_movie_matrix)
 
-rows = []
-for i in similarity_matrix:
-    delete_indexes = []
-    rows.append(i)
+G = nx.DiGraph() # 有向グラフ
+for reviews in similar_movie_matrix:
+    # print(reviews)
+    nx.add_star(G, reviews)
+nx.draw_networkx(G)
+plt.show()
 
-for row in rows:
-    row = row[~(row < criteria_value)]
-    print(row)
-
-
-    for j in range(len(i)):
-        review = i[j]
-        if review < criteria_value:
-            delete_indexes.append(j)
-    np.delete(i, delete_indexes, axis=None)
-print(similarity_matrix)
-
-# G = nx.DiGraph() # 有向グラフ
-
-# # nx.add_path(G, [3, 5, 4, 1, 0, 2, 7, 8, 9, 6])
-# # nx.add_path(G, [3, 0, 6, 4, 2, 7, 1, 9, 8, 5])
-# nx.add_star(G, [1,2,3,4,5])
-# nx.add_star(G, [2,3,4, 5])
+# tests = [[1,3,5], [2,3,6], [3,5,8], [4,5,7]]
+# for test in tests:
+#     nx.add_star(G, test)
 # nx.draw_networkx(G)
 # plt.show()
