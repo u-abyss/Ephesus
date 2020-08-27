@@ -1,98 +1,66 @@
-import csv
+import matplotlib.pyplot as plt
+import networkx as nx
 import numpy as np
 import pandas as pd
 from scipy import sparse
-from tqdm import tqdm
 from sklearn.metrics.pairwise import pairwise_distances
+from tqdm import tqdm
 
-u_data_org = pd.read_csv('./u.data', sep='\t', names=['user_id','item_id', 'rating', 'timestamp'])
-
-# ユーザ数×評価値のデータ
-u_data_train = pd.read_csv('./ua.base', names=['user_id', 'item_id', 'rating', 'timestamp'], sep='\t')
-u_data_test = pd.read_csv('./ua.test', names=['user_id', 'item_id', 'rating', 'timestamp'], sep='\t')
-# アイテム同士の類似度を計算するために学習データをitem_id✖️user_idの行列に変換する
+u_data_org = pd.read_csv(
+    './u.data',
+    sep='\t',
+    names=['user_id','item_id', 'rating', 'timestamp']
+)
+# encodingをlatin-1に変更しないとエラーになる
+movie_description_org = pd.read_csv(
+    './u.item.csv',
+    sep='|',
+    names=[
+        'movie_id', 'movie_title', 'release_date', 'video_release_date', 'imdb_url', 'unknown', 'action', 'adventure',
+        'animation', 'children', 'comedy', 'crime', 'documentary', 'drama', 'fantasy', 'film_noir', 'horror', 'musical',
+        'mystery', 'romance', 'sci_fi', 'thriller', 'war', 'western'
+    ],
+    encoding='latin-1'
+)
+#アイテム同士の類似度を計算するために学習データをitem_id✖️user_idの行列に変換する
 items = u_data_org.sort_values('item_id').item_id.unique()
 users = u_data_org.user_id.unique()
-# アイテム数✖️ユーザ数の0で初期化された２次元配列を生成する
-rating_matrix_item = np.zeros([len(items), len(users)])
+# 各アイテムのユーザごとの評価の配列る
+shape = (u_data_org.max().loc['item_id'], u_data_org.max().loc['user_id'])
+rating_matrix = np.zeros(shape)
+for i in u_data_org.index:
+    row = u_data_org.loc[i]
+    rating_matrix[row['item_id'] -1 , row['user_id'] - 1] = row['rating']
 
-
-# 各アイテムのユーザごとの評価の配列
-# 列がユーザ,　行がアイテム
-for item_id in range(1, len(items)):
-    # 各映画に対して評価をしたユーザのidが格納された配列を生成する(users_item)
-    # item_idが1の時は,　item_id1の映画をみた全ユーザのidが格納される
-    users_item = u_data_train[u_data_train['item_id'] == item_id].sort_values('user_id').user_id.unique()
-    for user_id in users_item:
-        try:
-            user_rate = u_data_train[(u_data_train['item_id'] == item_id) & (u_data_train['user_id'] == user_id)].loc[:, 'rating'] # loc: 行ラベルと列ラベルで位置を指定する.
-        except:
-            user_rate = 0
-        rating_matrix_item[item_id-1, user_id-1] = user_rate
-
-# item x userの評価したかどうか{0, 1}がわかる行列作成
-rating_matrix_calc = rating_matrix_item.copy()
-rating_matrix_calc[rating_matrix_calc != 0] = 1
-# 評価していないアイテムに1が立つ行列を作成。後で使う
-rating_matrix_train = np.abs(rating_matrix_calc - 1)
+# userがアイテムを評価したがどうかがわかる{0, 1}の行列を作成
+is_rated_matrix = rating_matrix.copy()
+is_rated_matrix[is_rated_matrix != 0] = 1
 
 # コサイン類似度によるアイテム同士の類似度の配列
-similarity_matrix = 1 - pairwise_distances(rating_matrix_item, metric='cosine')
+similarity_matrix = 1 - pairwise_distances(rating_matrix, metric='cosine')
 np.fill_diagonal(similarity_matrix, 0) # 対角線上の要素を0に上書きする
 
-# user_idが100のユーザに対して予測評価値とレコメンドを行う.
-user_id = 100
-hits = 0
-# 各ユーザの評価値を抜き出し「類似度×評価点」を算出
-rating_matrix_user = rating_matrix_item[:, user_id - 1] # 対象ユーザのアイテムの評価値を抜き出す
-pred_rating_user = similarity_matrix * rating_matrix_user
-print(pred_rating_user)
-# アイテム（行）ごとに「類似度×評価点」を合計
-pred_rating_user = pred_rating_user.sum(axis=1)
-print(pred_rating_user)
-# # ユーザが既に評価したアイテムのスコアはゼロに直す
-pred_rating_user_item = pred_rating_user * rating_matrix_train[:,user_id - 1]
+similar_movie_matrix = []
+similar_movies = []
+criteria_value = 0.4
+for idx, i in enumerate(similarity_matrix):
+    similar_movies = []
+    for index, review_point in enumerate(i):
+        if review_point >= criteria_value:
+            similar_movies.append(index+1)
+    similar_movies.insert(0, idx+1)
+    similar_movie_matrix.append(similar_movies)
+# print(similar_movie_matrix)
 
-# ここからレコメンドされたアイテムがどれだけあっていたかを評価していく
-# [::-1]で降順となる
-recommend_list = np.argsort(pred_rating_user_item)[::-1][:10] + 1
-purchase_list_user = u_data_test[u_data_test.user_id == user_id].loc[:, 'item_id'].unique()
-for item_id in recommend_list:
-    if item_id in purchase_list_user:
-        hits += 1
-pre = hits / 10.0
+G = nx.DiGraph() # 有向グラフ
+for reviews in similar_movie_matrix:
+    # print(reviews)
+    nx.add_star(G, reviews)
+nx.draw_networkx(G)
+plt.show()
 
-print('Recommend list:', recommend_list)
-print('Test Rated list:', purchase_list_user)
-print('Precision:', str(pre))
-
-# precision_list = []
-# recall_list = []
-# user_list_test = u_data_test.sort_values('user_id').user_id.unique()
-
-# for user_id in user_list_test:
-#     hits = 0
-#     # 各ユーザの評価値を抜き出し「類似度×評価点」を算出
-#     rating_matrix_user = rating_matrix_item[:, user_id - 1]
-#     pred_rating_user = similarity_matrix * rating_matrix_user
-
-#     # アイテム（行）ごとに「類似度×評価点」を合計
-#     pred_rating_user_item = pred_rating_user * rating_matrix_train[:,user_id - 1]
-
-#     # ユーザが既に評価したアイテムのスコアはゼロに直す
-#     pred_rating_user_item[np.isnan(pred_rating_user_item)] = 0
-
-#     #ここからレコメンドされたアイテムがどれだけあっていたかを評価していく
-#     recommend_list = np.argsort(pred_rating_user_item)[::-1][:10] + 1
-#     purchase_list_user = u_data_test[u_data_test.user_id == user_id].loc[:, 'item_id'].unique()
-#     if len(purchase_list_user) == 0:
-#         continue
-#     for item_id in recommend_list:
-#         if item_id in purchase_list_user:
-#             hits += 1
-#     pre = hits / 10.0
-#     precision_list.append(pre)
-
-# # 全体の精度検証
-# precision = sum(precision_list) / len(precision_list)
-# print('Precision:', precision)
+# tests = [[1,3,5], [2,3,6], [3,5,8], [4,5,7]]
+# for test in tests:
+#     nx.add_star(G, test)
+# nx.draw_networkx(G)
+# plt.show()
