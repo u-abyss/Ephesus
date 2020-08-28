@@ -6,6 +6,13 @@ from scipy import sparse
 from sklearn.metrics.pairwise import pairwise_distances
 from tqdm import tqdm
 
+# G = nx.Graph() # 有向グラフ
+# tests = [[1,3,5], [2,3,6], [3,5,8], [4,5,7], [5,1,3,7]]
+# for test in tests:
+#     nx.add_star(G, test)
+# nx.draw_networkx(G)
+# plt.show()
+
 u_data_org = pd.read_csv(
     './u.data',
     sep='\t',
@@ -22,6 +29,31 @@ movie_description_org = pd.read_csv(
     ],
     encoding='latin-1'
 )
+
+delete_columns = ['movie_id','movie_title','release_date', 'video_release_date', 'imdb_url']
+movie_description_org.drop(delete_columns, axis=1, inplace=True)
+movie_categories = [
+    'unknown', 'action', 'adventure', 'animation', 'children', 'comedy', 'crime', 'documentary', 'drama', 'fantasy',
+    'film_noir', 'horror', 'musical', 'mystery', 'romance', 'sci_fi', 'thriller', 'war', 'western'
+]
+
+
+movie_dict = {}
+def categorize_movies(matrix):
+    # movie_dict = {}
+    movie_id = 1
+    for row in matrix.itertuples():
+        for i in range(1, 20):
+            if row[i] == 1:
+                movie_dict.setdefault(movie_id, movie_categories[i-1])
+                movie_id += 1
+                break
+            else:
+                continue
+
+categorize_movies(movie_description_org)
+
+
 #アイテム同士の類似度を計算するために学習データをitem_id✖️user_idの行列に変換する
 items = u_data_org.sort_values('item_id').item_id.unique()
 users = u_data_org.user_id.unique()
@@ -42,7 +74,7 @@ np.fill_diagonal(similarity_matrix, 0) # 対角線上の要素を0に上書き�
 
 similar_movie_matrix = []
 similar_movies = []
-criteria_value = 0.4
+criteria_value = 0.5
 for idx, i in enumerate(similarity_matrix):
     similar_movies = []
     for index, review_point in enumerate(i):
@@ -52,15 +84,54 @@ for idx, i in enumerate(similarity_matrix):
     similar_movie_matrix.append(similar_movies)
 # print(similar_movie_matrix)
 
-G = nx.DiGraph() # 有向グラフ
-for reviews in similar_movie_matrix:
-    # print(reviews)
-    nx.add_star(G, reviews)
-nx.draw_networkx(G)
-plt.show()
+# 映画のジャンルに応じて,　ノードに色付けをする
+def get_color(node):
+    category = movie_dict[node]
+    if category == 'unknown':
+        return 'grey'
+    elif category == 'action':
+        return 'red'
+    elif category == 'adventure':
+        return 'green'
+    elif category == 'animation':
+        return 'yellow'
+    elif category == 'children':
+        return 'orange'
+    elif category == 'comedy':
+        return 'gold'
+    elif category == 'crime':
+        return 'purple'
+    elif category == 'documentary':
+        return 'brown'
+    elif category == 'drama':
+        return 'white'
+    elif category == 'fantasy':
+        return 'pink'
+    elif category == 'film_noir':
+        return 'aqua'
+    elif category == 'horror':
+        return 'black'
+    elif category == 'musical':
+        return 'tomato'
+    elif category == 'mystery':
+        return 'navy'
+    elif category == 'romance':
+        return 'magenta'
+    elif category == 'sci_fi':
+        return 'darkgreen'
+    elif category == 'thriller':
+        return 'darkslategray'
+    elif category == 'war':
+        return 'darkred'
+    else:
+        return 'chocolate'
 
-# tests = [[1,3,5], [2,3,6], [3,5,8], [4,5,7]]
-# for test in tests:
-#     nx.add_star(G, test)
-# nx.draw_networkx(G)
-# plt.show()
+
+color_map = []
+G = nx.Graph() # 無向グラフ
+for reviews in similar_movie_matrix:
+    nx.add_star(G, reviews)
+for node in G:
+    color_map.append(get_color(node))
+nx.draw_networkx(G, node_color=color_map)
+plt.show()
