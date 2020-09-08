@@ -39,28 +39,39 @@ movie_categories = [
 ]
 movie_dict = {}
 all_categories = []
+# def categorize_movies(matrix):
+#     movie_id = 1
+#     category_number = 0
+#     for row in matrix.itertuples():
+#         categories = []
+#         for i in range(1, 20):
+#             if row[i] == 1:
+#                 categories.append(i)
+#         # print(categories)
+#         if categories not in all_categories:
+#             all_categories.append(categories)
+#             category_number = all_categories.index(categories)
+#             movie_dict.setdefault(movie_id, category_number)
+#             movie_id += 1
+#         else:
+#             category_number = all_categories.index(categories)
+#             movie_dict.setdefault(movie_id, category_number)
+#             movie_id += 1
+
 def categorize_movies(matrix):
+    # movie_dict = {}
     movie_id = 1
-    category_number = 0
     for row in matrix.itertuples():
-        categories = []
         for i in range(1, 20):
             if row[i] == 1:
-                categories.append(i)
-        # print(categories)
-        if categories not in all_categories:
-            all_categories.append(categories)
-            category_number = all_categories.index(categories)
-            movie_dict.setdefault(movie_id, category_number)
-            movie_id += 1
-        else:
-            category_number = all_categories.index(categories)
-            movie_dict.setdefault(movie_id, category_number)
-            movie_id += 1
-
+                movie_dict.setdefault(movie_id, movie_categories[i-1])
+                movie_id += 1
+                break
+            else:
+                continue
 categorize_movies(movie_description_org)
 
-watched_movies = [10, 50, 100, 300, 900, 901, 1000, 1200, 1478, 1500, 1550, 1600, 1681]
+watched_movies = [1,11,50,64,69,72,94,96,121,144,161,195,200,204,225,313,568]
 
 #アイテム同士の類似度を計算するために学習データをitem_id✖️user_idの行列に変換する
 items = u_data_org.sort_values('item_id').item_id.unique()
@@ -92,23 +103,65 @@ for idx, i in enumerate(similarity_matrix):
     similar_movie_matrix.append(similar_movies)
 
 # ランダムにカラーコードを生成する
-def generate_random_color_code():
-    return '#{:X}{:X}{:X}'.format(*[random.randint(10, 255) for _ in range(3)])
+# def generate_random_color_code():
+#     return '#{:X}{:X}{:X}'.format(*[random.randint(10, 255) for _ in range(3)])
 
 # 映画のカテゴリーの種類数分だけのカラーコードを配列にappendする
-colors = []
-for i in range(216):
-    while True:
-        color = generate_random_color_code()
-        # カラーコードの文字列の長さが6の場合draw_networkxでエラーが起きる. またカラーコードが被った場合もう一度カラーコードを生成する.
-        if color not in colors and len(color) == 7:
-            colors.append(color)
-            break
+# colors = []
+# for i in range(216):
+#     while True:
+#         color = generate_random_color_code()
+#         # カラーコードの文字列の長さが6の場合draw_networkxでエラーが起きる. またカラーコードが被った場合もう一度カラーコードを生成する.
+#         if color not in colors and len(color) == 7:
+#             colors.append(color)
+#             break
 
+# def get_color(node):
+#     category_number = movie_dict[node]
+#     color = colors[category_number]
+#     return color
+
+# 映画のジャンルに応じて,　ノードに色付けをする
 def get_color(node):
-    category_number = movie_dict[node]
-    color = colors[category_number]
-    return color
+    category = movie_dict[node]
+    if category == 'unknown':
+        return 'grey'
+    elif category == 'action':
+        return 'mediumvioletred'
+    elif category == 'adventure':
+        return 'green'
+    elif category == 'animation':
+        return 'yellow'
+    elif category == 'children':
+        return 'orange'
+    elif category == 'comedy':
+        return 'gold'
+    elif category == 'crime':
+        return 'purple'
+    elif category == 'documentary':
+        return 'brown'
+    elif category == 'drama':
+        return 'lightyellow'
+    elif category == 'fantasy':
+        return 'pink'
+    elif category == 'film_noir':
+        return 'aqua'
+    elif category == 'horror':
+        return 'black'
+    elif category == 'musical':
+        return 'tomato'
+    elif category == 'mystery':
+        return 'navy'
+    elif category == 'romance':
+        return 'magenta'
+    elif category == 'sci_fi':
+        return 'darkgreen'
+    elif category == 'thriller':
+        return 'darkslategray'
+    elif category == 'war':
+        return 'darkred'
+    else:
+        return 'chocolate'
 
 color_map = []
 G = nx.Graph() # 無向グラフ
@@ -117,6 +170,25 @@ for reviews in similar_movie_matrix:
 for node in range(1, 1683):
     # 各ノードのカテゴリーに応じてカラーコードを取得する
     color_map.append(get_color(node))
+for i in watched_movies:
+    color_map[i] = 'red'
 nx.draw_networkx(G, node_color=color_map, node_size= 200, font_size=4, width=0.2, style='dotted')
 plt.show()
+
+
+
+# # movie_dict = {}
+# def categorize_movies(matrix):
+#     # movie_dict = {}
+#     movie_id = 1
+#     for row in matrix.itertuples():
+#         for i in range(1, 20):
+#             if row[i] == 1:
+#                 movie_dict.setdefault(movie_id, movie_categories[i-1])
+#                 movie_id += 1
+#                 break
+#             else:
+#                 continue
+
+# categorize_movies(movie_description_org)
 
