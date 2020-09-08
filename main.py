@@ -15,13 +15,13 @@ import random
 # nx.add_star(G, [4, 3,8])
 
 u_data_org = pd.read_csv(
-    './u.data',
+    './data/u.data',
     sep='\t',
     names=['user_id','item_id', 'rating', 'timestamp']
 )
 # encodingをlatin-1に変更しないとエラーになる
 movie_description_org = pd.read_csv(
-    './u.item.csv',
+    './data/u.item.csv',
     sep='|',
     names=[
         'movie_id', 'movie_title', 'release_date', 'video_release_date', 'imdb_url', 'unknown', 'action', 'adventure',
@@ -104,7 +104,6 @@ for i in range(216):
         if color not in colors and len(color) == 7:
             colors.append(color)
             break
-
 
 def get_color(node):
     category_number = movie_dict[node]
