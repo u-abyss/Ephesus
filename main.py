@@ -7,12 +7,6 @@ from sklearn.metrics.pairwise import pairwise_distances
 from tqdm import tqdm
 import random
 
-# color_map = ['#C72F7E','#ff4000','#ff4000','#00bfff','#ff4000','#ff4000','#ff4000']
-# G = nx.Graph() # 無向グラフ
-# nx.add_star(G, [1, 3,5,7,8])
-# nx.add_star(G, [2, 8])
-# nx.add_star(G, [3, 5,7])
-# nx.add_star(G, [4, 3,8])
 
 u_data_org = pd.read_csv(
     './data/u.data',
@@ -59,7 +53,6 @@ all_categories = []
 #             movie_id += 1
 
 def categorize_movies(matrix):
-    # movie_dict = {}
     movie_id = 1
     for row in matrix.itertuples():
         for i in range(1, 20):
@@ -163,6 +156,12 @@ def get_color(node):
     else:
         return 'chocolate'
 
+# delete nodes that dot't have edge
+delete_nodes = []
+for i in range(len(similar_movie_matrix)):
+    if len(similar_movie_matrix[i]) == 1:
+        delete_nodes.append(i+1)
+
 color_map = []
 G = nx.Graph() # 無向グラフ
 for reviews in similar_movie_matrix:
@@ -172,23 +171,13 @@ for node in range(1, 1683):
     color_map.append(get_color(node))
 for i in watched_movies:
     color_map[i] = 'red'
+for i in delete_nodes:
+    G.remove_node(i)
+
+# reverse=True to prevent offset of index
+for i in sorted(delete_nodes, reverse=True):
+    color_map.pop(i)
 nx.draw_networkx(G, node_color=color_map, node_size= 200, font_size=4, width=0.2, style='dotted')
 plt.show()
 
-
-
-# # movie_dict = {}
-# def categorize_movies(matrix):
-#     # movie_dict = {}
-#     movie_id = 1
-#     for row in matrix.itertuples():
-#         for i in range(1, 20):
-#             if row[i] == 1:
-#                 movie_dict.setdefault(movie_id, movie_categories[i-1])
-#                 movie_id += 1
-#                 break
-#             else:
-#                 continue
-
-# categorize_movies(movie_description_org)
 
