@@ -6,8 +6,9 @@ import random
 from scipy import sparse
 from sklearn.metrics.pairwise import pairwise_distances
 from tqdm import tqdm
-from module.category import categorize_movies
+from module.category import categorize_movies, categorize_movies_completely
 from module.color import get_color
+from module.favorite import get_user_favorite_categories
 
 # ユーザ数943人
 # 映画数1682
@@ -17,25 +18,27 @@ u_data_org = pd.read_csv(
     sep='\t',
     names=['user_id','item_id', 'rating', 'timestamp']
 )
-
+category_names = [
+    'movie_id', 'movie_title', 'release_date', 'video_release_date', 'imdb_url', 'unknown', 'action', 'adventure',
+    'animation', 'children', 'comedy', 'crime', 'documentary', 'drama', 'fantasy', 'film_noir', 'horror', 'musical',
+    'mystery', 'romance', 'sci_fi', 'thriller', 'war', 'western'
+]
 # encodingをlatin-1に変更しないとエラーになる
 movie_description_org = pd.read_csv(
     './data/u.item.csv',
     sep='|',
-    names=[
-        'movie_id', 'movie_title', 'release_date', 'video_release_date', 'imdb_url', 'unknown', 'action', 'adventure',
-        'animation', 'children', 'comedy', 'crime', 'documentary', 'drama', 'fantasy', 'film_noir', 'horror', 'musical',
-        'mystery', 'romance', 'sci_fi', 'thriller', 'war', 'western'
-    ],
+    names=category_names,
     encoding='latin-1'
 )
 
-delete_columns = ['movie_id','movie_title','release_date', 'video_release_date', 'imdb_url']
+delete_columns = ['movie_title','release_date', 'video_release_date', 'imdb_url']
 movie_description_org.drop(delete_columns, axis=1, inplace=True)
 
 user_review_numbers = []
 max_review_number = 0
 max_review_number_user = 0
+
+# print(u_data_org)
 
 # 各ユーザが見た映画の本数を出す
 for i in range(1, 944):
@@ -52,13 +55,15 @@ target_user_reviews = u_data_org[u_data_org['user_id'] == 727]
 user_watched_movies = []
 for i in target_user_reviews.item_id:
     user_watched_movies.append(i)
-# print(user_watched_movies)
+# print(type((movie_description_org[movie_description_org['movie_id'].isin(user_watched_movies)]).sum()['action']))
 
+user_favorite_categories = get_user_favorite_categories(movie_description_org, target_user_reviews)
 
 movie_dict = {}
 all_categories = []
 
 movie_dict = categorize_movies(movie_description_org)
+print(movie_dict)
 
 #アイテム同士の類似度を計算するために学習データをitem_id✖️user_idの行列に変換する
 items = u_data_org.sort_values('item_id').item_id.unique()
@@ -108,6 +113,7 @@ def show_graph():
     for reviews in similar_movie_two_dimension:
         nx.add_star(G, reviews)
     for node in range(1, 1683):
+        print(node)
         # 各ノードのカテゴリーに応じてカラーコードを取得する
         color_map.append(get_color(node, movie_dict))
     # for i in user_watched_movies:
