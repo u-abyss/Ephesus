@@ -48,10 +48,10 @@ for i in range(1, 944):
         max_review_number_user = i
     user_review_numbers.append(len(user_review_number))
 # 各ユーザが何本の映画に評価をつけたかに関するタプル型の配列 [(user_id-1, 見た映画の本数)]
-# print(sorted(enumerate(user_review_numbers), key=lambda x:x[1], reverse=True))
+print(sorted(enumerate(user_review_numbers), key=lambda x:x[1], reverse=True))
 
 # 対象とするユーザが見た映画のidを配列に追加
-target_user_reviews = u_data_org[u_data_org['user_id'] == 727]
+target_user_reviews = u_data_org[u_data_org['user_id'] == 404]
 user_watched_movies = []
 for i in target_user_reviews.item_id:
     user_watched_movies.append(i)
@@ -59,7 +59,7 @@ for i in target_user_reviews.item_id:
 
 user_favorite_categories = get_user_favorite_categories(movie_description_org, target_user_reviews)
 top5_categories = user_favorite_categories[user_favorite_categories != 0].index[:5]
-worst_category = user_favorite_categories[user_favorite_categories != 0].index[-1]
+worst_category = user_favorite_categories[user_favorite_categories != 0].index[-2]
 
 movie_dict = {}
 all_categories = []
