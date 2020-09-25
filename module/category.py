@@ -27,6 +27,7 @@ def categorize_movies_completely(matrix):
     return movie_dict
 
 def categorize_movies(matrix):
+    matrix.drop("movie_id", axis=1, inplace=True)
     movie_id = 1
     for row in matrix.itertuples():
         for i in range(1, 20):

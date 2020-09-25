@@ -6,9 +6,10 @@ import random
 from scipy import sparse
 from sklearn.metrics.pairwise import pairwise_distances
 from tqdm import tqdm
-from module.category import categorize_movies
+from module.category import categorize_movies, categorize_movies_completely
 from module.color import get_color
-from statistics import mean, median,variance,stdev
+from module.favorite import get_user_favorite_categories
+
 
 # ユーザ数943人
 # 映画数1682
@@ -18,25 +19,27 @@ u_data_org = pd.read_csv(
     sep='\t',
     names=['user_id','item_id', 'rating', 'timestamp']
 )
-
+category_names = [
+    'movie_id', 'movie_title', 'release_date', 'video_release_date', 'imdb_url', 'unknown', 'action', 'adventure',
+    'animation', 'children', 'comedy', 'crime', 'documentary', 'drama', 'fantasy', 'film_noir', 'horror', 'musical',
+    'mystery', 'romance', 'sci_fi', 'thriller', 'war', 'western'
+]
 # encodingをlatin-1に変更しないとエラーになる
 movie_description_org = pd.read_csv(
     './data/u.item.csv',
     sep='|',
-    names=[
-        'movie_id', 'movie_title', 'release_date', 'video_release_date', 'imdb_url', 'unknown', 'action', 'adventure',
-        'animation', 'children', 'comedy', 'crime', 'documentary', 'drama', 'fantasy', 'film_noir', 'horror', 'musical',
-        'mystery', 'romance', 'sci_fi', 'thriller', 'war', 'western'
-    ],
+    names=category_names,
     encoding='latin-1'
 )
 
-delete_columns = ['movie_id','movie_title','release_date', 'video_release_date', 'imdb_url']
+delete_columns = ['movie_title','release_date', 'video_release_date', 'imdb_url']
 movie_description_org.drop(delete_columns, axis=1, inplace=True)
 
 user_review_numbers = []
 max_review_number = 0
 max_review_number_user = 0
+
+# print(u_data_org)
 
 # 各ユーザが見た映画の本数を出す
 for i in range(1, 944):
@@ -46,15 +49,18 @@ for i in range(1, 944):
         max_review_number_user = i
     user_review_numbers.append(len(user_review_number))
 # 各ユーザが何本の映画に評価をつけたかに関するタプル型の配列 [(user_id-1, 見た映画の本数)]
-# print(sorted(enumerate(user_review_numbers), key=lambda x:x[1], reverse=True))
+print(sorted(enumerate(user_review_numbers), key=lambda x:x[1], reverse=True))
 
 # 対象とするユーザが見た映画のidを配列に追加
-target_user_reviews = u_data_org[u_data_org['user_id'] == 727]
+target_user_reviews = u_data_org[u_data_org['user_id'] == 404]
 user_watched_movies = []
 for i in target_user_reviews.item_id:
     user_watched_movies.append(i)
-# print(user_watched_movies)
+# print(type((movie_description_org[movie_description_org['movie_id'].isin(user_watched_movies)]).sum()['action']))
 
+user_favorite_categories = get_user_favorite_categories(movie_description_org, target_user_reviews)
+top5_categories = user_favorite_categories[user_favorite_categories != 0].index[:5]
+worst_category = user_favorite_categories[user_favorite_categories != 0].index[-2]
 
 movie_dict = {}
 all_categories = []
@@ -119,6 +125,23 @@ for i in range(len(similar_movie_two_dimension)):
     if len(similar_movie_two_dimension[i]) == 1:
         delete_nodes.append(i+1)
 
+def get_color_by_user_categories(node, dict, top5_categories, worst_category):
+    category = dict[node]
+    if category == top5_categories[0]:
+        return "purple"
+    elif category == top5_categories[1]:
+        return "green"
+    elif category == top5_categories[2]:
+        return "yellow"
+    elif category == top5_categories[3]:
+        return "red"
+    elif category == top5_categories[4]:
+        return "blue"
+    elif category == worst_category:
+        return "black"
+    else:
+        return "white"
+
 def show_graph():
     color_map = []
     G = nx.Graph() # 無向グラフ
@@ -126,7 +149,8 @@ def show_graph():
         nx.add_star(G, reviews)
     for node in range(1, 1683):
         # 各ノードのカテゴリーに応じてカラーコードを取得する
-        color_map.append(get_color(node, movie_dict))
+        # color_map.append(get_color(node, movie_dict))
+        color_map.append(get_color_by_user_categories(node, movie_dict, top5_categories, worst_category))
     # for i in user_watched_movies:
     #     color_map[i] = 'red'
     for i in delete_nodes:
