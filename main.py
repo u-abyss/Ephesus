@@ -8,6 +8,7 @@ from sklearn.metrics.pairwise import pairwise_distances
 from tqdm import tqdm
 from module.category import categorize_movies
 from module.color import get_color
+from statistics import mean, median,variance,stdev
 
 # ユーザ数943人
 # 映画数1682
@@ -74,58 +75,67 @@ for i in u_data_org.index:
 is_rated_matrix = rating_matrix.copy()
 is_rated_matrix[is_rated_matrix != 0] = 1
 
+totals = []
 # コサイン類似度によるアイテム同士の類似度の配列
-similarity_matrix = 1 - pairwise_distances(rating_matrix, metric='cosine')
+similarity_matrix = 1-pairwise_distances(rating_matrix, metric='cosine')
 np.fill_diagonal(similarity_matrix, 0) # 対角線上の要素を0に上書きする
-print(similarity_matrix.ndim)
-print(np.mean(similarity_matrix))
-print(type(similarity_matrix))
-reshape_similarity_matrix = similarity_matrix.flatten()
 
-print(np.median(reshape_similarity_matrix))
-plt.hist(reshape_similarity_matrix)
+def get_mean(matrix):
+    totals = []
+    for i in matrix:
+        for j in i:
+            if j != 0:
+                totals.append(j)
+    total_sum = sum(totals)
+    mean = total_sum / 1413721
+    return mean
+# reshape_similarity_matrix = similarity_matrix.flatten()
 
-# # 各ノードから派生するノードの配列
-# similar_movie_two_dimension = [] # 各ノードが持つノードを列挙した二次元配列
-# similar_movies = []
-# criterion = 0.4
-# for idx, i in enumerate(similarity_matrix):
-#     similar_movies = []
-#     for index, review_point in enumerate(i):
-#         if review_point >= criterion:
-#             similar_movies.append(index+1)
-#     similar_movies.insert(0, idx+1)
-#     similar_movie_two_dimension.append(similar_movies)
+# print(np.median(reshape_similarity_matrix))
+# plt.hist(reshape_similarity_matrix)
 
-# # 各ノードが何本の映画とつながっているかを求める [(item_id, つながっているノードの数)]
-# similar_movie_two_dimension_lengths = []
-# for row in similar_movie_two_dimension:
-#     similar_movie_two_dimension_lengths.append(len(row))
-# # print(sorted(enumerate(similar_movie_two_dimension_lengths), key=lambda x:x[1], reverse=True))
 
-# # delete nodes that dot't have edge
-# delete_nodes = []
-# for i in range(len(similar_movie_two_dimension)):
-#     if len(similar_movie_two_dimension[i]) == 1:
-#         delete_nodes.append(i+1)
+# 各ノードから派生するノードの配列
+similar_movie_two_dimension = [] # 各ノードが持つノードを列挙した二次元配列
+similar_movies = []
+criterion = 0.4
+for idx, i in enumerate(similarity_matrix):
+    similar_movies = []
+    for index, review_point in enumerate(i):
+        if review_point >= criterion:
+            similar_movies.append(index+1)
+    similar_movies.insert(0, idx+1)
+    similar_movie_two_dimension.append(similar_movies)
 
-# def show_graph():
-#     color_map = []
-#     G = nx.Graph() # 無向グラフ
-#     for reviews in similar_movie_two_dimension:
-#         nx.add_star(G, reviews)
-#     for node in range(1, 1683):
-#         # 各ノードのカテゴリーに応じてカラーコードを取得する
-#         color_map.append(get_color(node, movie_dict))
-#     # for i in user_watched_movies:
-#     #     color_map[i] = 'red'
-#     for i in delete_nodes:
-#         G.remove_node(i)
+# 各ノードが何本の映画とつながっているかを求める [(item_id, つながっているノードの数)]
+similar_movie_two_dimension_lengths = []
+for row in similar_movie_two_dimension:
+    similar_movie_two_dimension_lengths.append(len(row))
+# print(sorted(enumerate(similar_movie_two_dimension_lengths), key=lambda x:x[1], reverse=True))
 
-#     # reverse=True to prevent offset of index
-#     for i in sorted(delete_nodes, reverse=True):
-#         color_map.pop(i)
-#     nx.draw_networkx(G, node_color=color_map, node_size= 200, font_size=4, width=0.2, style='dotted')
-#     plt.show()
+# delete nodes that dot't have edge
+delete_nodes = []
+for i in range(len(similar_movie_two_dimension)):
+    if len(similar_movie_two_dimension[i]) == 1:
+        delete_nodes.append(i+1)
 
-# # show_graph()
+def show_graph():
+    color_map = []
+    G = nx.Graph() # 無向グラフ
+    for reviews in similar_movie_two_dimension:
+        nx.add_star(G, reviews)
+    for node in range(1, 1683):
+        # 各ノードのカテゴリーに応じてカラーコードを取得する
+        color_map.append(get_color(node, movie_dict))
+    # for i in user_watched_movies:
+    #     color_map[i] = 'red'
+    for i in delete_nodes:
+        G.remove_node(i)
+
+    # reverse=True to prevent offset of index
+    for i in sorted(delete_nodes, reverse=True):
+        color_map.pop(i)
+    nx.draw_networkx(G, node_color=color_map, node_size= 200, font_size=4, width=0.2, style='dotted')
+    plt.show()
+
+show_graph()
