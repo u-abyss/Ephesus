@@ -62,3 +62,21 @@ def get_random_color(node, dict):
     category_number = dict[node]
     color = colors[category_number]
     return color
+
+# ユーザの好きなカテゴリーと嫌いなカテゴリーで色付け
+def get_color_by_user_categories(node, dict, top5_categories, worst_category):
+    category = dict[node]
+    if category == top5_categories[0]:
+        return "purple"
+    elif category == top5_categories[1]:
+        return "green"
+    elif category == top5_categories[2]:
+        return "yellow"
+    elif category == top5_categories[3]:
+        return "red"
+    elif category == top5_categories[4]:
+        return "blue"
+    elif category == worst_category:
+        return "black"
+    else:
+        return "white"

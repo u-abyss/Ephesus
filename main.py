@@ -7,7 +7,7 @@ from scipy import sparse
 from sklearn.metrics.pairwise import pairwise_distances
 from tqdm import tqdm
 from module.category import categorize_movies, categorize_movies_completely
-from module.color import get_color
+from module.color import get_color, get_color_by_user_categories
 from module.favorite import get_user_favorite_categories
 
 # ユーザ数943人
@@ -38,8 +38,6 @@ user_review_numbers = []
 max_review_number = 0
 max_review_number_user = 0
 
-# print(u_data_org)
-
 # 各ユーザが見た映画の本数を出す
 for i in range(1, 944):
     user_review_number = u_data_org[u_data_org['user_id'] == i]
@@ -51,15 +49,70 @@ for i in range(1, 944):
 print(sorted(enumerate(user_review_numbers), key=lambda x:x[1], reverse=True))
 
 # 対象とするユーザが見た映画のidを配列に追加
-target_user_reviews = u_data_org[u_data_org['user_id'] == 404]
-user_watched_movies = []
-for i in target_user_reviews.item_id:
-    user_watched_movies.append(i)
-# print(type((movie_description_org[movie_description_org['movie_id'].isin(user_watched_movies)]).sum()['action']))
+def get_movieIds(userId):
+    target_user_reviews = u_data_org[u_data_org['user_id'] == userId]
+    user_watched_movies = []
+    for i in target_user_reviews.item_id:
+        user_watched_movies.append(i)
+    return target_user_reviews
+    # print(type((movie_description_org[movie_description_org['movie_id'].isin(user_watched_movies)]).sum()['action']))
+get_movieIds(654)
 
-user_favorite_categories = get_user_favorite_categories(movie_description_org, target_user_reviews)
+user_favorite_categories = get_user_favorite_categories(movie_description_org, get_movieIds(404))
 top5_categories = user_favorite_categories[user_favorite_categories != 0].index[:5]
+top3_categories = user_favorite_categories[user_favorite_categories != 0].index[:3]
 worst_category = user_favorite_categories[user_favorite_categories != 0].index[-2]
+
+combined_categories = np.append(top3_categories.values, worst_category)
+print(combined_categories)
+print(movie_description_org[combined_categories])
+
+combined_6_category = np.append(top5_categories.values, worst_category)
+
+def get_movie_labels():
+    label = 0
+    movie_labels = []
+    for row in (movie_description_org[combined_6_category]).itertuples():
+        # 嫌いなカテゴリーのみの映画
+        if row[0] == 0 and row[1] == 0 and row[2] == 0 and row[3] == 0 and row[4] == 0 and row[5] == 1:
+            label = 0
+        elif (row[0] == 1 or row[1]== 1 or row[2] == 1 or row[3] == 0 or row[4] == 0) and row[5]== 0:
+            label = 2
+        elif (row[0] == 1 or row[1]== 1 or row[2] == 1 or row[3] == 0 or row[4] == 0) and row[5]== 1:
+            label = 100
+        else:
+            label = 000
+        movie_labels.append(label)
+    return movie_labels
+print(get_movie_labels())
+
+# def get_movie_labels():
+#     label = 0
+#     movie_labels = []
+#     for row in (movie_description_org[combined_categories]).itertuples():
+#         # 嫌いなカテゴリーのみの映画
+#         if row[0] == 0 and row[1] == 0 and row[2] == 0 and row[3] == 1:
+#             label = 0
+#         elif (row[0] == 1 or row[1]== 1 or row[2] == 1) and row[3]== 0:
+#             label = 2
+#         elif (row[0] == 1 or row[1]== 1 or row[2] == 1) and row[3]== 1:
+#             label = 100
+#         else:
+#             label = 000
+#         movie_labels.append(label)
+#     return movie_labels
+# print(get_movie_labels())
+
+def get_color_by_label(node, array):
+    label = array[node-1]
+    if label == 0:
+        return 'grey'
+    elif label == 2:
+        return 'red'
+    elif label == 100:
+        return 'yellow'
+    else:
+        return 'white'
 
 movie_dict = {}
 all_categories = []
@@ -69,16 +122,12 @@ movie_dict = categorize_movies(movie_description_org)
 #アイテム同士の類似度を計算するために学習データをitem_id✖️user_idの行列に変換する
 items = u_data_org.sort_values('item_id').item_id.unique()
 users = u_data_org.user_id.unique()
-# 各アイテムのユーザごとの評価の配列る
+# 各アイテムのユーザごとの評価の配列
 shape = (u_data_org.max().loc['item_id'], u_data_org.max().loc['user_id'])
 rating_matrix = np.zeros(shape)
 for i in u_data_org.index:
     row = u_data_org.loc[i]
     rating_matrix[row['item_id'] -1 , row['user_id'] - 1] = row['rating']
-
-# userがアイテムを評価したがどうかがわかる{0, 1}の行列を作成
-is_rated_matrix = rating_matrix.copy()
-is_rated_matrix[is_rated_matrix != 0] = 1
 
 # コサイン類似度によるアイテム同士の類似度の配列
 similarity_matrix = 1 - pairwise_distances(rating_matrix, metric='cosine')
@@ -108,23 +157,6 @@ for i in range(len(similar_movie_two_dimension)):
     if len(similar_movie_two_dimension[i]) == 1:
         delete_nodes.append(i+1)
 
-def get_color_by_user_categories(node, dict, top5_categories, worst_category):
-    category = dict[node]
-    if category == top5_categories[0]:
-        return "purple"
-    elif category == top5_categories[1]:
-        return "green"
-    elif category == top5_categories[2]:
-        return "yellow"
-    elif category == top5_categories[3]:
-        return "red"
-    elif category == top5_categories[4]:
-        return "blue"
-    elif category == worst_category:
-        return "black"
-    else:
-        return "white"
-
 def show_graph():
     color_map = []
     G = nx.Graph() # 無向グラフ
@@ -133,7 +165,8 @@ def show_graph():
     for node in range(1, 1683):
         # 各ノードのカテゴリーに応じてカラーコードを取得する
         # color_map.append(get_color(node, movie_dict))
-        color_map.append(get_color_by_user_categories(node, movie_dict, top5_categories, worst_category))
+        color_map.append(get_color_by_label(node, get_movie_labels()))
+        # color_map.append(get_color_by_user_categories(node, movie_dict, top5_categories, worst_category))
     # for i in user_watched_movies:
     #     color_map[i] = 'red'
     for i in delete_nodes:
