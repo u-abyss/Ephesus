@@ -10,6 +10,7 @@ from module.category import categorize_movies, categorize_movies_completely
 from module.color import get_color, get_color_by_user_categories
 from module.favorite import get_user_favorite_categories
 
+
 # ユーザ数943人
 # 映画数1682
 
@@ -130,17 +131,32 @@ for i in u_data_org.index:
     rating_matrix[row['item_id'] -1 , row['user_id'] - 1] = row['rating']
 
 # コサイン類似度によるアイテム同士の類似度の配列
-similarity_matrix = 1 - pairwise_distances(rating_matrix, metric='cosine')
+similarity_matrix = 1-pairwise_distances(rating_matrix, metric='cosine')
 np.fill_diagonal(similarity_matrix, 0) # 対角線上の要素を0に上書きする
+
+def get_mean(matrix):
+    totals = []
+    for i in matrix:
+        for j in i:
+            if j != 0:
+                totals.append(j)
+    total_sum = sum(totals)
+    mean = total_sum / 1413721
+    return mean
+# reshape_similarity_matrix = similarity_matrix.flatten()
+
+# print(np.median(reshape_similarity_matrix))
+# plt.hist(reshape_similarity_matrix)
+
 
 # 各ノードから派生するノードの配列
 similar_movie_two_dimension = [] # 各ノードが持つノードを列挙した二次元配列
 similar_movies = []
-criteria_value = 0.4
+criterion = 0.4
 for idx, i in enumerate(similarity_matrix):
     similar_movies = []
     for index, review_point in enumerate(i):
-        if review_point >= criteria_value:
+        if review_point >= criterion:
             similar_movies.append(index+1)
     similar_movies.insert(0, idx+1)
     similar_movie_two_dimension.append(similar_movies)
