@@ -6,7 +6,7 @@ category_names = [
     'mystery', 'romance', 'sci_fi', 'thriller', 'war', 'western'
 ]
 
-def get_user_favorite_categories(movie_description_org, target_user_reviews):
+def get_user_category_preference(movie_description_org, target_user_reviews):
     total_result = pd.Series(index=category_names)
     for i in range(1, 6):
         item_ids = []
