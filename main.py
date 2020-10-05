@@ -3,6 +3,7 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 import random
+import statistics
 from scipy import sparse
 from sklearn.metrics.pairwise import pairwise_distances
 from tqdm import tqdm
@@ -36,12 +37,20 @@ delete_columns = ['movie_title','release_date', 'video_release_date', 'imdb_url'
 movie_description_org.drop(delete_columns, axis=1, inplace=True)
 
 # 各ユーザが見た評価した映画の本数を出す
-user_review_numbers = []
-for i in range(1, 944):
-    user_reviews_df = u_data_org[u_data_org['user_id'] == i]
-    user_review_numbers.append(len(user_reviews_df))
-# 各ユーザが何本の映画に評価をつけたかに関するタプル型の配列 [(user_id-1, 見た映画の本数)]
-print(sorted(enumerate(user_review_numbers), key=lambda x:x[1], reverse=True))
+def get_user_review_numbers():
+    user_review_numbers = []
+    for i in range(1, 944):
+        user_reviews_df = u_data_org[u_data_org['user_id'] == i]
+        user_review_numbers.append(len(user_reviews_df))
+    # 各ユーザが何本の映画に評価をつけたかに関するタプル型の配列 [(user_id-1, 見た映画の本数)]
+    # print(sorted(enumerate(user_review_numbers), key=lambda x:x[1], reverse=True))
+    return user_review_numbers
+
+def show_user_review_number_hg():
+    plt.hist(get_user_review_numbers(), bins=40)
+    plt.show()
+
+show_user_review_number_hg()
 
 """
 get_movieIds(userId, u_date_org)
