@@ -55,16 +55,34 @@ worst_category = user_preference_categories[user_preference_categories != 0].ind
 combined_categories = np.append(top3_categories.values, worst_category)
 combined_6_category = np.append(top5_categories.values, worst_category)
 
+def get_movie_labels():
+    label = 0
+    movie_labels = []
+    for row in (movie_description_org[combined_6_category]).itertuples():
+        # 嫌いなカテゴリーのみの映画
+        if row[1] == 0 and row[2] == 0 and row[3] == 0 and row[4] == 0 and row[5] == 0 and row[6] == 1:
+            label = 'dislike'
+        elif (row[1] == 1 or row[2]== 1 or row[3] == 1 or row[4] == 1 or row[5] == 1) and row[6]== 0:
+            label = 'like'
+        elif (row[1] == 1 or row[2]== 1 or row[3] == 1 or row[4] == 1 or row[5] == 1) and row[6]== 1:
+            label = 'both'
+        else:
+            label = 'none'
+        movie_labels.append(label)
+    return movie_labels
+# print(get_movie_labels())
+
 # def get_movie_labels():
 #     label = 0
 #     movie_labels = []
-#     for row in (movie_description_org[combined_6_category]).itertuples():
+#     for row in (movie_description_org[combined_categories]).itertuples():
 #         # 嫌いなカテゴリーのみの映画
-#         if row[1] == 0 and row[2] == 0 and row[3] == 0 and row[4] == 0 and row[5] == 0 and row[6] == 1:
+#         if row[1] == 0 and row[2] == 0 and row[3] == 0 and row[4] == 1:
 #             label = 'dislike'
-#         elif (row[1] == 1 or row[2]== 1 or row[3] == 1 or row[4] == 1 or row[5] == 1) and row[6]== 0:
+#             # print(row)
+#         elif (row[1] == 1 or row[2]== 1 or row[3] == 1) and row[4]== 0:
 #             label = 'like'
-#         elif (row[1] == 1 or row[2]== 1 or row[3] == 1 or row[4] == 1 or row[5] == 1) and row[6]== 1:
+#         elif (row[1] == 1 or row[2]== 1 or row[3] == 1) and row[4]== 1:
 #             label = 'both'
 #         else:
 #             label = 'none'
@@ -73,31 +91,12 @@ combined_6_category = np.append(top5_categories.values, worst_category)
 # print(get_movie_labels())
 
 
-def get_movie_labels():
-    label = 0
-    movie_labels = []
-    for row in (movie_description_org[combined_categories]).itertuples():
-        # 嫌いなカテゴリーのみの映画
-        if row[1] == 0 and row[2] == 0 and row[3] == 0 and row[4] == 1:
-            label = 'dislike'
-            # print(row)
-        elif (row[1] == 1 or row[2]== 1 or row[3] == 1) and row[4]== 0:
-            label = 'like'
-        elif (row[1] == 1 or row[2]== 1 or row[3] == 1) and row[4]== 1:
-            label = 'both'
-        else:
-            label = 'none'
-        movie_labels.append(label)
-    return movie_labels
-# print(get_movie_labels())
-
-
 def get_color_by_label(node, array):
     label = array[node-1]
     if label == 'dislike':
-        return 'black'
+        return 'blue'
     elif label == 'like':
-        return 'orange'
+        return 'red'
     elif label == 'both':
         return 'yellow'
     else:
@@ -125,15 +124,15 @@ for i in u_data_org.index:
 similarity_matrix = 1-pairwise_distances(user_rating_matrix, metric='cosine')
 np.fill_diagonal(similarity_matrix, 0) # 対角線上の要素を0に上書きする
 
-def get_mean(matrix):
-    totals = []
-    for i in matrix:
-        for j in i:
-            if j != 0:
-                totals.append(j)
-    total_sum = sum(totals)
-    mean = total_sum / 1413721
-    return mean
+# def get_mean(matrix):
+#     totals = []
+#     for i in matrix:
+#         for j in i:
+#             if j != 0:
+#                 totals.append(j)
+#     total_sum = sum(totals)
+#     mean = total_sum / 1413721
+#     return mean
 # reshape_similarity_matrix = similarity_matrix.flatten()
 
 # 各ノードから派生するノード数の配列

@@ -16,9 +16,9 @@ def get_user_category_preference(movie_description_org, target_user_reviews):
             item_ids.append(item_id)
         # weights depended on movie review point
         if i == 1:
-            multiple = 0.5
+            multiple = (-2.0)
         elif i == 2:
-            multiple = 0.75
+            multiple = (-1.5)
         elif i == 3:
             multiple = 1
         elif i == 4:
