@@ -26,6 +26,13 @@ def categorize_movies_completely(matrix):
             movie_id += 1
     return movie_dict
 
+"""
+categorize_movie()
+各映画を一つのカテゴリーで分ける
+複数のカテゴリーがあるものに一番先頭にあるカテゴリーをその映画のカテゴリーとして定義する
+{movieID: 'category'}
+"""
+
 def categorize_movie(matrix):
     matrix.drop("movie_id", axis=1, inplace=True)
     movie_id = 1

@@ -8,9 +8,8 @@ from scipy import sparse
 from sklearn.metrics.pairwise import pairwise_distances
 from tqdm import tqdm
 from module.category import categorize_movie, categorize_movies_completely
-from module.color import get_color, get_color_by_user_categories
 from module.preference import get_user_category_preference
-from module.movie import get_movieIds
+from module.color import get_color_by_user_reference
 
 # ユーザ数943人
 # 映画数1682
@@ -25,6 +24,10 @@ category_names = [
     'animation', 'children', 'comedy', 'crime', 'documentary', 'drama', 'fantasy', 'film_noir', 'horror', 'musical',
     'mystery', 'romance', 'sci_fi', 'thriller', 'war', 'western'
 ]
+
+movie_categories = ['unknown', 'action', 'adventure',
+    'animation', 'children', 'comedy', 'crime', 'documentary', 'drama', 'fantasy', 'film_noir', 'horror', 'musical',
+    'mystery', 'romance', 'sci_fi', 'thriller', 'war', 'western']
 # encodingをlatin-1に変更しないとエラーになる
 movie_description_org = pd.read_csv(
     './data/u.item.csv',
@@ -37,85 +40,44 @@ delete_columns = ['movie_title','release_date', 'video_release_date', 'imdb_url'
 movie_description_org.drop(delete_columns, axis=1, inplace=True)
 
 # 各ユーザが見た評価した映画の本数を出す
-def get_user_review_numbers():
-    user_review_numbers = []
+def get_user_review_movieIds():
+    user_review_movieIds = []
     for i in range(1, 944):
         user_reviews_df = u_data_org[u_data_org['user_id'] == i]
-        user_review_numbers.append(len(user_reviews_df))
+        user_review_movieIds.append(len(user_reviews_df))
     # 各ユーザが何本の映画に評価をつけたかに関するタプル型の配列 [(user_id-1, 見た映画の本数)]
     # print(sorted(enumerate(user_review_numbers), key=lambda x:x[1], reverse=True))
-    return user_review_numbers
+    return user_review_movieIds
 
-def show_user_review_number_hg():
-    plt.hist(get_user_review_numbers(), bins=40)
-    plt.show()
+print(get_user_review_movieIds())
 
-show_user_review_number_hg()
+# def show_user_review_number_hg():
+#     plt.hist(get_user_review_numbers(), bins=40)
+#     plt.show()
 
-"""
-get_movieIds(userId, u_date_org)
-対象のユーザが評価した映画のidの配列を返す関数
-"""
-user_preference_categories =  get_user_category_preference(movie_description_org, get_movieIds(12, u_data_org))
-top5_categories = user_preference_categories[user_preference_categories != 0].index[:5]
-top3_categories = user_preference_categories[user_preference_categories != 0].index[:3]
-worst_category = user_preference_categories[user_preference_categories != 0].index[-2]
+# show_user_review_number_hg()
 
-combined_categories = np.append(top3_categories.values, worst_category)
-combined_6_category = np.append(top5_categories.values, worst_category)
+# print(get_user_category_preference(movie_description_org, u_data_org, 3, 247))
+top5_categories = get_user_category_preference(movie_description_org, u_data_org, 5, 247)
 
-def get_movie_labels():
-    label = 0
-    movie_labels = []
-    for row in (movie_description_org[combined_6_category]).itertuples():
-        # 嫌いなカテゴリーのみの映画
-        if row[1] == 0 and row[2] == 0 and row[3] == 0 and row[4] == 0 and row[5] == 0 and row[6] == 1:
-            label = 'dislike'
-        elif (row[1] == 1 or row[2]== 1 or row[3] == 1 or row[4] == 1 or row[5] == 1) and row[6]== 0:
-            label = 'like'
-        elif (row[1] == 1 or row[2]== 1 or row[3] == 1 or row[4] == 1 or row[5] == 1) and row[6]== 1:
-            label = 'both'
+def get_categorized_movies_by_user_preference():
+    categorized_movies_by_user_preference = []
+    for row in (movie_description_org.loc[:, top5_categories]).itertuples():
+        user_reviewed_movieIds = get_user_review_movieIds()
+        # すでに見た映画かどうかの場合分け
+        if row.Index + 1 in user_reviewed_movieIds:
+            # カテゴリがユーザの好みのカテゴリのリストに入っているかどうかの判定
+            if sum(row) - row.Index != 0:
+                categorized_movies_by_user_preference.append('watch_fave')
+            else:
+                categorized_movies_by_user_preference.append('watch_not_fave')
         else:
-            label = 'none'
-        movie_labels.append(label)
-    return movie_labels
-# print(get_movie_labels())
+            if sum(row) - row.Index != 0:
+                categorized_movies_by_user_preference.append('not_watch_fave')
+            else:
+                categorized_movies_by_user_preference.append('not_watch_not_fave')
+    return categorized_movies_by_user_preference
 
-# def get_movie_labels():
-#     label = 0
-#     movie_labels = []
-#     for row in (movie_description_org[combined_categories]).itertuples():
-#         # 嫌いなカテゴリーのみの映画
-#         if row[1] == 0 and row[2] == 0 and row[3] == 0 and row[4] == 1:
-#             label = 'dislike'
-#             # print(row)
-#         elif (row[1] == 1 or row[2]== 1 or row[3] == 1) and row[4]== 0:
-#             label = 'like'
-#         elif (row[1] == 1 or row[2]== 1 or row[3] == 1) and row[4]== 1:
-#             label = 'both'
-#         else:
-#             label = 'none'
-#         movie_labels.append(label)
-#     return movie_labels
-# print(get_movie_labels())
-
-
-def get_color_by_label(node, array):
-    label = array[node-1]
-    if label == 'dislike':
-        return 'blue'
-    elif label == 'like':
-        return 'red'
-    elif label == 'both':
-        return 'yellow'
-    else:
-        return 'white'
-"""
-categorize_movie()
-各映画を一つのカテゴリーで分ける
-複数のカテゴリーがあるものに一番先頭にあるカテゴリーをその映画のカテゴリーとして定義する
-{movieID: 'category'}
-"""
 movie_category_dict = {}
 movie_category_dict = categorize_movie(movie_description_org)
 
@@ -172,13 +134,13 @@ def get_unused_nodes():
 def show_graph():
     color_map = []
     G = nx.Graph()
+    categorized_movies = get_categorized_movies_by_user_preference()
     for reviews in similar_movie_two_dimension:
         nx.add_star(G, reviews)
     for node in range(1, 1683):
         # 各ノードのカテゴリーに応じてカラーコードを取得する
         # color_map.append(get_color(node, movie_category_dict))
-        color_map.append(get_color_by_label(node, get_movie_labels()))
-        # color_map.append(get_color_by_user_categories(node, movie_category_dict, top5_categories, worst_category))
+        color_map.append(get_color_by_user_reference(node, categorized_movies))
     unused_nodes = get_unused_nodes()
     for i in unused_nodes:
         G.remove_node(i)
