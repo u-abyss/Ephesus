@@ -7,7 +7,7 @@ import statistics
 from scipy import sparse
 from sklearn.metrics.pairwise import pairwise_distances
 from tqdm import tqdm
-from module.category import categorize_movie, categorize_movies_completely
+from module.category import categorize_movie, categorize_movies_completely, get_categorized_movies_by_user_preference
 from module.preference import get_user_category_preference
 from module.color import get_color_by_user_reference
 
@@ -39,44 +39,13 @@ movie_description_org = pd.read_csv(
 delete_columns = ['movie_title','release_date', 'video_release_date', 'imdb_url']
 movie_description_org.drop(delete_columns, axis=1, inplace=True)
 
-# 各ユーザが見た評価した映画の本数を出す
-def get_user_review_movieIds():
-    user_review_movieIds = []
-    for i in range(1, 944):
-        user_reviews_df = u_data_org[u_data_org['user_id'] == i]
-        user_review_movieIds.append(len(user_reviews_df))
-    # 各ユーザが何本の映画に評価をつけたかに関するタプル型の配列 [(user_id-1, 見た映画の本数)]
-    # print(sorted(enumerate(user_review_numbers), key=lambda x:x[1], reverse=True))
-    return user_review_movieIds
-
-print(get_user_review_movieIds())
-
 # def show_user_review_number_hg():
 #     plt.hist(get_user_review_numbers(), bins=40)
 #     plt.show()
 
 # show_user_review_number_hg()
 
-# print(get_user_category_preference(movie_description_org, u_data_org, 3, 247))
 top5_categories = get_user_category_preference(movie_description_org, u_data_org, 5, 247)
-
-def get_categorized_movies_by_user_preference():
-    categorized_movies_by_user_preference = []
-    for row in (movie_description_org.loc[:, top5_categories]).itertuples():
-        user_reviewed_movieIds = get_user_review_movieIds()
-        # すでに見た映画かどうかの場合分け
-        if row.Index + 1 in user_reviewed_movieIds:
-            # カテゴリがユーザの好みのカテゴリのリストに入っているかどうかの判定
-            if sum(row) - row.Index != 0:
-                categorized_movies_by_user_preference.append('watch_fave')
-            else:
-                categorized_movies_by_user_preference.append('watch_not_fave')
-        else:
-            if sum(row) - row.Index != 0:
-                categorized_movies_by_user_preference.append('not_watch_fave')
-            else:
-                categorized_movies_by_user_preference.append('not_watch_not_fave')
-    return categorized_movies_by_user_preference
 
 movie_category_dict = {}
 movie_category_dict = categorize_movie(movie_description_org)
@@ -134,7 +103,7 @@ def get_unused_nodes():
 def show_graph():
     color_map = []
     G = nx.Graph()
-    categorized_movies = get_categorized_movies_by_user_preference()
+    categorized_movies = get_categorized_movies_by_user_preference(movie_description_org, top5_categories, u_data_org)
     for reviews in similar_movie_two_dimension:
         nx.add_star(G, reviews)
     for node in range(1, 1683):

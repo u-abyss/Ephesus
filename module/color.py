@@ -73,3 +73,4 @@ def get_color_by_user_reference(node, array):
         return 'blue'
     else:
         return 'lightblue'
+
