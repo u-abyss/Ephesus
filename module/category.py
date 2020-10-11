@@ -47,7 +47,8 @@ def categorize_movie(matrix):
 
 def get_user_review_movieIds(u_data_org):
     user_review_movieIds = []
-    for i in range(1, 944):
+    MAX_USER_RANGE = 944
+    for i in range(1, MAX_USER_RANGE):
         user_reviews_df = u_data_org[u_data_org['user_id'] == i]
         user_review_movieIds.append(len(user_reviews_df))
     # 各ユーザが何本の映画に評価をつけたかに関するタプル型の配列 [(user_id-1, 見た映画の本数)]
@@ -56,19 +57,19 @@ def get_user_review_movieIds(u_data_org):
 
 def get_categorized_movies_by_user_preference(movie_description_org, top5_categories, u_data_org):
     categorized_movies_by_user_preference = []
+    user_reviewed_movieIds = get_user_review_movieIds(u_data_org)
     for row in (movie_description_org.loc[:, top5_categories]).itertuples():
-        user_reviewed_movieIds = get_user_review_movieIds(u_data_org)
-        sm = sum(row)
+        sm = sum(row) - row.Index
         categorized_movies_by_user_preference_append = categorized_movies_by_user_preference.append
         # すでに見た映画かどうかの場合分け
         if row.Index + 1 in user_reviewed_movieIds:
             # カテゴリがユーザの好みのカテゴリのリストに入っているかどうかの判定
-            if sm - row.Index != 0:
+            if sm != 0:
                 categorized_movies_by_user_preference_append('watch_fave')
             else:
                 categorized_movies_by_user_preference_append('watch_not_fave')
         else:
-            if sm - row.Index != 0:
+            if sm != 0:
                 categorized_movies_by_user_preference_append('not_watch_fave')
             else:
                 categorized_movies_by_user_preference_append('not_watch_not_fave')
