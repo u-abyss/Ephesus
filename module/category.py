@@ -14,7 +14,6 @@ def categorize_movies_completely(matrix):
         for i in range(1, 20):
             if row[i] == 1:
                 categories.append(i)
-        # print(categories)
         if categories not in all_categories:
             all_categories.append(categories)
             category_number = all_categories.index(categories)
@@ -59,16 +58,18 @@ def get_categorized_movies_by_user_preference(movie_description_org, top5_catego
     categorized_movies_by_user_preference = []
     for row in (movie_description_org.loc[:, top5_categories]).itertuples():
         user_reviewed_movieIds = get_user_review_movieIds(u_data_org)
+        sm = sum(row)
+        categorized_movies_by_user_preference_append = categorized_movies_by_user_preference.append
         # すでに見た映画かどうかの場合分け
         if row.Index + 1 in user_reviewed_movieIds:
             # カテゴリがユーザの好みのカテゴリのリストに入っているかどうかの判定
-            if sum(row) - row.Index != 0:
-                categorized_movies_by_user_preference.append('watch_fave')
+            if sm - row.Index != 0:
+                categorized_movies_by_user_preference_append('watch_fave')
             else:
-                categorized_movies_by_user_preference.append('watch_not_fave')
+                categorized_movies_by_user_preference_append('watch_not_fave')
         else:
-            if sum(row) - row.Index != 0:
-                categorized_movies_by_user_preference.append('not_watch_fave')
+            if sm - row.Index != 0:
+                categorized_movies_by_user_preference_append('not_watch_fave')
             else:
-                categorized_movies_by_user_preference.append('not_watch_not_fave')
+                categorized_movies_by_user_preference_append('not_watch_not_fave')
     return categorized_movies_by_user_preference

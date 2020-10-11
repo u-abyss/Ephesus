@@ -7,9 +7,10 @@ import statistics
 from scipy import sparse
 from sklearn.metrics.pairwise import pairwise_distances
 from tqdm import tqdm
-from module.category import categorize_movie, categorize_movies_completely, get_categorized_movies_by_user_preference
+from module.category import categorize_movie, categorize_movies_completely, get_categorized_movies_by_user_preference, get_user_review_movieIds
 from module.preference import get_user_category_preference
-from module.color import get_color_by_user_reference
+from module.color import get_color_by_user_reference, get_color
+from utils.showhistgram import show_histgram
 
 # ユーザ数943人
 # 映画数1682
@@ -39,43 +40,42 @@ movie_description_org = pd.read_csv(
 delete_columns = ['movie_title','release_date', 'video_release_date', 'imdb_url']
 movie_description_org.drop(delete_columns, axis=1, inplace=True)
 
-# def show_user_review_number_hg():
-#     plt.hist(get_user_review_numbers(), bins=40)
-#     plt.show()
+"""
+各ユーザのレビュー数のヒストグラムを表示する
+"""
+# show_histgram(get_user_review_movieIds(), bin=40)
 
-# show_user_review_number_hg()
 
 top5_categories = get_user_category_preference(movie_description_org, u_data_org, 5, 247)
 
 movie_category_dict = {}
 movie_category_dict = categorize_movie(movie_description_org)
-
 #アイテム同士の類似度を計算するために学習データをitem_id✖️user_idの行列に変換する
 items = u_data_org.sort_values('item_id').item_id.unique()
 users = u_data_org.user_id.unique()
 shape = (u_data_org.max().loc['item_id'], u_data_org.max().loc['user_id'])
-# 全ての要素が0で初期化された映画数✖️ユーザ数の行列を定義
-user_rating_matrix = np.zeros(shape)
+user_rating_matrix = np.zeros(shape) # 全ての要素が0で初期化された映画数✖️ユーザ数の行列を定義
 for i in u_data_org.index:
     row = u_data_org.loc[i]
     user_rating_matrix[row['item_id'] -1 , row['user_id'] - 1] = row['rating']
 
-# コサイン類似度によるアイテム同士の類似度の配列
-similarity_matrix = 1-pairwise_distances(user_rating_matrix, metric='cosine')
+similarity_matrix = 1 - pairwise_distances(user_rating_matrix, metric='cosine') # コサイン類似度によるアイテム同士の類似度の配列
 np.fill_diagonal(similarity_matrix, 0) # 対角線上の要素を0に上書きする
 
-# def get_mean(matrix):
-#     totals = []
-#     for i in matrix:
-#         for j in i:
-#             if j != 0:
-#                 totals.append(j)
-#     total_sum = sum(totals)
-#     mean = total_sum / 1413721
-#     return mean
-# reshape_similarity_matrix = similarity_matrix.flatten()
+"""
+各映画のその他の映画とのコサイン類似度のヒストグラムを表示
+"""
+# total_row = []
+# for row in similarity_matrix:
+#     total_row.extend(row)
+# show_histgram(total_row, 50)
 
 # 各ノードから派生するノード数の配列
+"""
+各ノードが他のどのノードとつながっているかを調べる関数
+ノード : 映画
+枝 : 映画と映画の間に関連性がある場合,　枝が張られる.
+"""
 similar_movie_two_dimension = [] # 各ノードが持つノードを列挙した二次元配列
 similarity_criterion = 0.4
 for idx, i in enumerate(similarity_matrix):
@@ -94,11 +94,11 @@ for row in similar_movie_two_dimension:
 
 # delete nodes that dot't have any edges
 def get_unused_nodes():
-    delete_nodes = []
+    unused_nodes = []
     for i in range(len(similar_movie_two_dimension)):
         if len(similar_movie_two_dimension[i]) == 1:
-            delete_nodes.append(i+1)
-    return delete_nodes
+            unused_nodes.append(i+1)
+    return unused_nodes
 
 def show_graph():
     color_map = []
