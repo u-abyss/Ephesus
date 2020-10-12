@@ -45,31 +45,37 @@ def categorize_movie(matrix):
                 continue
     return movie_dict
 
-def get_user_review_movieIds(u_data_org):
+def get_user_review_movieIds(all_reviews_df):
     user_review_movieIds = []
     MAX_USER_RANGE = 944
     for i in range(1, MAX_USER_RANGE):
-        user_reviews_df = u_data_org[u_data_org['user_id'] == i]
+        user_reviews_df = all_reviews_df[all_reviews_df['user_id'] == i]
         user_review_movieIds.append(len(user_reviews_df))
     # 各ユーザが何本の映画に評価をつけたかに関するタプル型の配列 [(user_id-1, 見た映画の本数)]
     # print(sorted(enumerate(user_review_numbers), key=lambda x:x[1], reverse=True))
     return user_review_movieIds
 
-def get_categorized_movies_by_user_preference(movie_description_org, top5_categories, u_data_org):
+def isUserPreferenceCategory(sum: int) -> bool:
+    if sum != 0:
+        return True
+    else:
+        return False
+
+def get_categorized_movies_by_user_preference(movie_description_df, top5_categories, all_reviews_df):
     categorized_movies_by_user_preference = []
-    user_reviewed_movieIds = get_user_review_movieIds(u_data_org)
-    for row in (movie_description_org.loc[:, top5_categories]).itertuples():
+    user_reviewed_movieIds = get_user_review_movieIds(all_reviews_df)
+    for row in (movie_description_df.loc[:, top5_categories]).itertuples():
         sm = sum(row) - row.Index
         categorized_movies_by_user_preference_append = categorized_movies_by_user_preference.append
         # すでに見た映画かどうかの場合分け
         if row.Index + 1 in user_reviewed_movieIds:
             # カテゴリがユーザの好みのカテゴリのリストに入っているかどうかの判定
-            if sm != 0:
+            if isUserPreferenceCategory(sm) == True:
                 categorized_movies_by_user_preference_append('watch_fave')
             else:
                 categorized_movies_by_user_preference_append('watch_not_fave')
         else:
-            if sm != 0:
+            if isUserPreferenceCategory(sm) == True:
                 categorized_movies_by_user_preference_append('not_watch_fave')
             else:
                 categorized_movies_by_user_preference_append('not_watch_not_fave')

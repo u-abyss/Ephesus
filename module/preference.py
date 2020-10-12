@@ -8,9 +8,9 @@ category_names = [
     'mystery', 'romance', 'sci_fi', 'thriller', 'war', 'western'
 ]
 
-def get_user_category_preference(movie_description_org, u_data_org, n, user_id):
-    reviewd_movieIds = get_reviewed_movieIds(user_id, u_data_org)
-    sum_reviews = movie_description_org[movie_description_org["movie_id"].isin(reviewd_movieIds)].sum()
+def get_user_category_preference(movie_description_df, all_reviews_df, n, user_id):
+    reviewd_movieIds = get_reviewed_movieIds(user_id, all_reviews_df)
+    sum_reviews = movie_description_df[movie_description_df["movie_id"].isin(reviewd_movieIds)].sum()
     sum_reviews.drop(labels=["movie_id", "unknown"], inplace=True)
     if n > 0:
         return sum_reviews.sort_values(ascending=False).index[:n]
