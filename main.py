@@ -15,7 +15,7 @@ from utils.showhistgram import show_histgram
 # ユーザ数943人
 # 映画数1682
 
-u_data_org = pd.read_csv(
+all_reviews_df = pd.read_csv(
     './data/u.data',
     sep='\t',
     names=['user_id','item_id', 'rating', 'timestamp']
@@ -30,7 +30,7 @@ movie_categories = ['unknown', 'action', 'adventure',
     'animation', 'children', 'comedy', 'crime', 'documentary', 'drama', 'fantasy', 'film_noir', 'horror', 'musical',
     'mystery', 'romance', 'sci_fi', 'thriller', 'war', 'western']
 # encodingをlatin-1に変更しないとエラーになる
-movie_description_org = pd.read_csv(
+movie_description_df = pd.read_csv(
     './data/u.item.csv',
     sep='|',
     names=category_names,
@@ -38,30 +38,37 @@ movie_description_org = pd.read_csv(
 )
 
 delete_columns = ['movie_title','release_date', 'video_release_date', 'imdb_url']
-movie_description_org.drop(delete_columns, axis=1, inplace=True)
+movie_description_df.drop(delete_columns, axis=1, inplace=True)
 
 """
 各ユーザのレビュー数のヒストグラムを表示する
 """
 # show_histgram(get_user_review_movieIds(), bin=40)
 
+top5_categories = get_user_category_preference(movie_description_df, all_reviews_df, 5, 247)
+worst_category = get_user_category_preference(movie_description_df, all_reviews_df, -1, 247)
 
-top5_categories = get_user_category_preference(movie_description_org, u_data_org, 5, 247)
+"""
+各映画同士のコサイン類似度を求める関数.
+映画数✖️映画数の行列を返す.
+1行は映画
+ベクトルの中身はその映画と,　他の全ての映画とのコサイン類似度の値.
+"""
+def computeMovieSimilarity(all_reviews_df):
+    items = all_reviews_df.sort_values('item_id').item_id.unique()#アイテム同士の類似度を計算するために学習データをitem_id✖️user_idの行列に変換する
+    users = all_reviews_df.user_id.unique()
+    shape = (all_reviews_df.max().loc['item_id'], all_reviews_df.max().loc['user_id'])
+    user_rating_matrix = np.zeros(shape) # 全ての要素が0で初期化された映画数✖️ユーザ数の行列を定義
+    for i in all_reviews_df.index:
+        row = all_reviews_df.loc[i]
+        user_rating_matrix[row['item_id'] -1 , row['user_id'] - 1] = row['rating']
+    movies_similarities = 1 - pairwise_distances(user_rating_matrix, metric='cosine') # コサイン類似度によるアイテム同士の類似度の配列
+    np.fill_diagonal(movies_similarities, 0) # 対角線上の要素を0に上書きする
+    return movies_similarities
 
-movie_category_dict = {}
-movie_category_dict = categorize_movie(movie_description_org)
-#アイテム同士の類似度を計算するために学習データをitem_id✖️user_idの行列に変換する
-items = u_data_org.sort_values('item_id').item_id.unique()
-users = u_data_org.user_id.unique()
-shape = (u_data_org.max().loc['item_id'], u_data_org.max().loc['user_id'])
-user_rating_matrix = np.zeros(shape) # 全ての要素が0で初期化された映画数✖️ユーザ数の行列を定義
-for i in u_data_org.index:
-    row = u_data_org.loc[i]
-    user_rating_matrix[row['item_id'] -1 , row['user_id'] - 1] = row['rating']
+movies_similarities = computeMovieSimilarity(all_reviews_df)
 
-similarity_matrix = 1 - pairwise_distances(user_rating_matrix, metric='cosine') # コサイン類似度によるアイテム同士の類似度の配列
-np.fill_diagonal(similarity_matrix, 0) # 対角線上の要素を0に上書きする
-
+# movie_category_dict = categorize_movie(movie_description_df)
 """
 各映画のその他の映画とのコサイン類似度のヒストグラムを表示
 """
@@ -78,7 +85,7 @@ np.fill_diagonal(similarity_matrix, 0) # 対角線上の要素を0に上書き�
 """
 similar_movie_two_dimension = [] # 各ノードが持つノードを列挙した二次元配列
 similarity_criterion = 0.4
-for idx, i in enumerate(similarity_matrix):
+for idx, i in enumerate(movies_similarities):
     similar_movies = []
     for index, review_point in enumerate(i):
         if review_point >= similarity_criterion:
@@ -103,7 +110,7 @@ def get_unused_nodes():
 def show_graph():
     color_map = []
     G = nx.Graph()
-    categorized_movies = get_categorized_movies_by_user_preference(movie_description_org, top5_categories, u_data_org)
+    categorized_movies = get_categorized_movies_by_user_preference(movie_description_df, top5_categories, all_reviews_df)
     for reviews in similar_movie_two_dimension:
         nx.add_star(G, reviews)
     for node in range(1, 1683):
