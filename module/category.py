@@ -63,10 +63,10 @@ def isUserPreferenceCategory(sum: int) -> bool:
 
 def get_categorized_movies_by_user_preference(movie_description_df, top5_categories, all_reviews_df):
     categorized_movies_by_user_preference = []
-    user_reviewed_movieIds = get_user_review_movieIds(all_reviews_df)
+    user_reviewed_movieIds: List[int] = get_user_review_movieIds(all_reviews_df)
+    categorized_movies_by_user_preference_append = categorized_movies_by_user_preference.append
     for row in (movie_description_df.loc[:, top5_categories]).itertuples():
         sm = sum(row) - row.Index
-        categorized_movies_by_user_preference_append = categorized_movies_by_user_preference.append
         # すでに見た映画かどうかの場合分け
         if row.Index + 1 in user_reviewed_movieIds:
             # カテゴリがユーザの好みのカテゴリのリストに入っているかどうかの判定
@@ -80,3 +80,35 @@ def get_categorized_movies_by_user_preference(movie_description_df, top5_categor
             else:
                 categorized_movies_by_user_preference_append('not_watch_not_fave')
     return categorized_movies_by_user_preference
+
+"""
+分野横断先のカテゴリーを一つ決定する
+各映画がそのカテゴリーを持っているのかいないのかを判別する
+その映画をみたことがあるのかないのかを判別する
+"""
+
+def isUserSelectedCategory(label: int) -> bool:
+    if label == 1:
+        return True
+    else:
+        return False
+
+def get_categorized_movies_by_selected_category(category: str, all_reviews_df, movie_description_df):
+    categorized_movies_by_selected_category = []
+    user_review_movieIds = get_user_review_movieIds(all_reviews_df)
+    categorized_movies_by_selected_category_append = categorized_movies_by_selected_category.append
+    # print(movie_description_df.loc[:, category])
+    for index, label in (movie_description_df.loc[:, category]).iteritems():
+        # print(label)
+        if index + 1 not in user_review_movieIds:
+            if isUserSelectedCategory(label) == True:
+                categorized_movies_by_selected_category_append('selected_category')
+            else:
+                categorized_movies_by_selected_category_append('not_selected_category')
+        else:
+            categorized_movies_by_selected_category_append('watched')
+    return categorized_movies_by_selected_category
+
+
+
+

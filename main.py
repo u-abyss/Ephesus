@@ -7,9 +7,9 @@ import statistics
 from scipy import sparse
 from sklearn.metrics.pairwise import pairwise_distances
 from tqdm import tqdm
-from module.category import categorize_movie, categorize_movies_completely, get_categorized_movies_by_user_preference, get_user_review_movieIds
+from module.category import categorize_movie, categorize_movies_completely, get_categorized_movies_by_user_preference, get_user_review_movieIds, get_categorized_movies_by_selected_category
 from module.preference import get_user_category_preference
-from module.color import get_color_by_user_reference, get_color
+from module.color import get_color_by_user_reference, get_color, get_color_by_selected_category
 from utils.showhistgram import show_histgram
 
 # ユーザ数943人
@@ -46,7 +46,8 @@ movie_description_df.drop(delete_columns, axis=1, inplace=True)
 # show_histgram(get_user_review_movieIds(), bin=40)
 
 top5_categories = get_user_category_preference(movie_description_df, all_reviews_df, 5, 247)
-worst_category = get_user_category_preference(movie_description_df, all_reviews_df, -1, 247)
+print(top5_categories)
+# worst_category = get_user_category_preference(movie_description_df, all_reviews_df, -1, 247)
 
 """
 各映画同士のコサイン類似度を求める関数.
@@ -111,12 +112,19 @@ def show_graph():
     color_map = []
     G = nx.Graph()
     categorized_movies = get_categorized_movies_by_user_preference(movie_description_df, top5_categories, all_reviews_df)
+    categorized_movies_by_selected_category = get_categorized_movies_by_selected_category('adventure', all_reviews_df, movie_description_df)
+    print(len(categorized_movies_by_selected_category))
     for reviews in similar_movie_two_dimension:
         nx.add_star(G, reviews)
     for node in range(1, 1683):
         # 各ノードのカテゴリーに応じてカラーコードを取得する
         # color_map.append(get_color(node, movie_category_dict))
-        color_map.append(get_color_by_user_reference(node, categorized_movies))
+        label = categorized_movies[node-1]
+        if label == 'watch_fave' or label == 'watch_not_fave':
+            color_map.append(get_color_by_user_reference(node, categorized_movies))
+        else:
+            label = categorized_movies_by_selected_category[node-1]
+            color_map.append(get_color_by_selected_category(label))
     unused_nodes = get_unused_nodes()
     for i in unused_nodes:
         G.remove_node(i)
