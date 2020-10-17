@@ -74,3 +74,9 @@ def get_color_by_user_reference(node, array):
     else:
         return 'lightblue'
 
+def get_color_by_selected_category(label):
+    if label == "selected_category":
+        return "black"
+    else:
+        return "gray"
+
