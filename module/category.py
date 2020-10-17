@@ -97,9 +97,7 @@ def get_categorized_movies_by_selected_category(category: str, all_reviews_df, m
     categorized_movies_by_selected_category = []
     user_review_movieIds = get_user_review_movieIds(all_reviews_df)
     categorized_movies_by_selected_category_append = categorized_movies_by_selected_category.append
-    # print(movie_description_df.loc[:, category])
     for index, label in (movie_description_df.loc[:, category]).iteritems():
-        # print(label)
         if index + 1 not in user_review_movieIds:
             if isUserSelectedCategory(label) == True:
                 categorized_movies_by_selected_category_append('selected_category')
