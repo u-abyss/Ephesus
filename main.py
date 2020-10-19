@@ -7,10 +7,10 @@ import statistics
 from scipy import sparse
 from sklearn.metrics.pairwise import pairwise_distances
 from tqdm import tqdm
-from module.category import categorize_movie, categorize_movies_completely, get_categorized_movies_by_user_preference, get_user_review_movieIds, get_categorized_movies_by_selected_category
+from module.category import categorize_movie, categorize_movies_completely, get_categorized_movies_by_user_preference, get_user_review_movieIds, get_categorized_movies_by_selected_category, get_all_user_review_numbers
 from module.preference import get_user_category_preference
 from module.color import get_color_by_user_reference, get_color, get_color_by_selected_category
-from utils.showhistgram import show_histgram
+from utils.show_histgram import show_histgram
 
 # ユーザ数943人
 # 映画数1682
@@ -43,7 +43,7 @@ movie_description_df.drop(delete_columns, axis=1, inplace=True)
 """
 各ユーザのレビュー数のヒストグラムを表示する
 """
-# show_histgram(get_user_review_movieIds(), bin=40)
+# show_histgram(get_all_user_review_numbers(all_reviews_df), 90)
 
 top5_categories = get_user_category_preference(movie_description_df, all_reviews_df, 5, 247)
 print(top5_categories)
@@ -68,15 +68,16 @@ def compute_movie_similarity(all_reviews_df: pd.DataFrame) -> np.ndarray:
     return movies_similarities
 
 movies_similarities = compute_movie_similarity(all_reviews_df)
+print(movies_similarities)
 
-# movie_category_dict = categorize_movie(movie_description_df)
-"""
-各映画のその他の映画とのコサイン類似度のヒストグラムを表示
-"""
-# total_row = []
-# for row in similarity_matrix:
-#     total_row.extend(row)
-# show_histgram(total_row, 50)
+# # movie_category_dict = categorize_movie(movie_description_df)
+# """
+# 各映画のその他の映画とのコサイン類似度のヒストグラムを表示
+# """
+# # total_row = []
+# # for row in similarity_matrix:
+# #     total_row.extend(row)
+# # show_histgram(total_row, 50)
 
 # 各ノードから派生するノード数の配列
 """
@@ -122,19 +123,25 @@ def show_graph():
     color_map = []
     G = nx.Graph()
     categorized_movies = get_categorized_movies_by_user_preference(movie_description_df, top5_categories, all_reviews_df, 247)
-    # categorized_movies_by_selected_category = get_categorized_movies_by_selected_category('adventure', all_reviews_df, movie_description_df)
+    categorized_movies_by_selected_category = get_categorized_movies_by_selected_category('mystery', all_reviews_df, movie_description_df, 247)
     for node in possess_nodes:
         nx.add_star(G, node)
     for node in range(1, 1683):
         # 各ノードのカテゴリーに応じてカラーコードを取得する
         # color_map.append(get_color(node, movie_category_dict))
-        color_map.append(get_color_by_user_reference(node, categorized_movies))
-        # label = categorized_movies[node-1]
-        # if label == 'watch_fave' or label == 'watch_not_fave':
-        #     color_map.append(get_color_by_user_reference(node, categorized_movies))
-        # else:
-        #     label = categorized_movies_by_selected_category[node-1]
-        #     color_map.append(get_color_by_selected_category(label))
+
+        # color_map.append(get_color_by_user_reference(node, categorized_movies)) # 見たことある映画とない映画で分けるやつ
+
+        """
+        見たことあるないで分ける+指定したカテゴリを含む映画で色分け
+        """
+        label = categorized_movies[node-1]
+        if label == 'watch_fave' or label == 'watch_not_fave':
+            color_map.append(get_color_by_user_reference(node, categorized_movies))
+        else:
+            label = categorized_movies_by_selected_category[node-1]
+            color_map.append(get_color_by_selected_category(label))
+
     unused_nodes = get_unused_nodes()
     for i in unused_nodes:
         G.remove_node(i)
