@@ -45,15 +45,17 @@ def categorize_movie(matrix):
                 continue
     return movie_dict
 
-def get_user_review_movieIds(all_reviews_df):
+def get_user_review_movieIds(all_reviews_df, user_id):
     user_review_movieIds = []
-    MAX_USER_RANGE = 944
-    for i in range(1, MAX_USER_RANGE):
-        user_reviews_df = all_reviews_df[all_reviews_df['user_id'] == i]
-        user_review_movieIds.append(len(user_reviews_df))
+    # MAX_USER_RANGE = 944
+    # for i in range(1, MAX_USER_RANGE):
+    #     user_reviews_df = all_reviews_df[all_reviews_df['user_id'] == i]
+    #     user_review_movieIds.append(len(user_reviews_df))
+    # print((all_reviews_df[all_reviews_df['user_id'] == user_id + 1]['item_id']).tolist())
     # 各ユーザが何本の映画に評価をつけたかに関するタプル型の配列 [(user_id-1, 見た映画の本数)]
-    # print(sorted(enumerate(user_review_numbers), key=lambda x:x[1], reverse=True))
-    return user_review_movieIds
+    # print(sorted(enumerate(user_review_movieIds), key=lambda x:x[1], reverse=True))
+    # return user_review_movieIds
+    return (all_reviews_df[all_reviews_df['user_id'] == user_id + 1]['item_id']).tolist()
 
 def isUserPreferenceCategory(sum: int) -> bool:
     if sum != 0:
@@ -61,9 +63,17 @@ def isUserPreferenceCategory(sum: int) -> bool:
     else:
         return False
 
-def get_categorized_movies_by_user_preference(movie_description_df, top5_categories, all_reviews_df):
+"""
+各映画を４つに分ける
+「見たことのある映画かつ好きなカテゴリーを含む」
+「見たことのある映画かつ好きなカテゴリーを含まない」
+「見たことない映画かつ好きなカテゴリーを含む」
+「見たことない映画かつ好きなカテゴリーを含まない」
+"""
+def get_categorized_movies_by_user_preference(movie_description_df, top5_categories, all_reviews_df, user_id):
     categorized_movies_by_user_preference = []
-    user_reviewed_movieIds: List[int] = get_user_review_movieIds(all_reviews_df)
+    user_reviewed_movieIds: List[int] = get_user_review_movieIds(all_reviews_df, user_id)
+    print(len(user_reviewed_movieIds))
     categorized_movies_by_user_preference_append = categorized_movies_by_user_preference.append
     for row in (movie_description_df.loc[:, top5_categories]).itertuples():
         sm = sum(row) - row.Index
@@ -93,9 +103,9 @@ def isUserSelectedCategory(label: int) -> bool:
     else:
         return False
 
-def get_categorized_movies_by_selected_category(category: str, all_reviews_df, movie_description_df):
+def get_categorized_movies_by_selected_category(category: str, all_reviews_df, movie_description_df, user_id):
     categorized_movies_by_selected_category = []
-    user_review_movieIds = get_user_review_movieIds(all_reviews_df)
+    user_review_movieIds = get_user_review_movieIds(all_reviews_df, user_id)
     categorized_movies_by_selected_category_append = categorized_movies_by_selected_category.append
     for index, label in (movie_description_df.loc[:, category]).iteritems():
         if index + 1 not in user_review_movieIds:
