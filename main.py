@@ -45,9 +45,10 @@ movie_description_df.drop(delete_columns, axis=1, inplace=True)
 """
 # show_histgram(get_all_user_review_numbers(all_reviews_df), 90)
 
-top5_categories = get_user_category_preference(movie_description_df, all_reviews_df, 5, 247)
+get_all_user_review_numbers(all_reviews_df)
+
+top5_categories = get_user_category_preference(movie_description_df, all_reviews_df, 5, 588)
 print(top5_categories)
-# worst_category = get_user_category_preference(movie_description_df, all_reviews_df, -1, 247)
 
 """
 各映画同士のコサイン類似度を求める関数.
@@ -68,16 +69,15 @@ def compute_movie_similarity(all_reviews_df: pd.DataFrame) -> np.ndarray:
     return movies_similarities
 
 movies_similarities = compute_movie_similarity(all_reviews_df)
-print(movies_similarities)
 
-# # movie_category_dict = categorize_movie(movie_description_df)
-# """
-# 各映画のその他の映画とのコサイン類似度のヒストグラムを表示
-# """
-# # total_row = []
-# # for row in similarity_matrix:
-# #     total_row.extend(row)
-# # show_histgram(total_row, 50)
+# movie_category_dict = categorize_movie(movie_description_df)
+"""
+各映画のその他の映画とのコサイン類似度のヒストグラムを表示
+"""
+# total_row = []
+# for row in movies_similarities:
+#     total_row.extend(row)
+# show_histgram(total_row, 50)
 
 # 各ノードから派生するノード数の配列
 """
@@ -87,13 +87,13 @@ print(movies_similarities)
 """
 def get_each_possess_nodes():
     possessNodes = [] # 各ノードが持つノードを列挙した二次元配列
-    similarity_criterion = 0.4
+    similarity_criterion = 0.6
     for idx, i in enumerate(movies_similarities):
         similar_movies = []
-        for index, review_point in enumerate(i):
-            if review_point >= similarity_criterion:
-                similar_movies.append(index+1)
-        similar_movies.insert(0, idx+1)
+        for index, similarity_value in enumerate(i):
+            if similarity_value >= similarity_criterion:
+                similar_movies.append(index+1) # movie_idをappendしていく
+        similar_movies.insert(0, idx+1) # 各配列の先頭に対象の映画のmovie_idを挿入する.
         possessNodes.append(similar_movies)
     return possessNodes
 
@@ -114,16 +114,17 @@ def get_each_possess_nodes_number():
 """
 def get_unused_nodes():
     unused_nodes = []
-    for i in range(len(possess_nodes)):
-        if len(possess_nodes[i]) == 1:
-            unused_nodes.append(i+1)
+    MAX_MOVIE_ID = 1682
+    for i in range(1, MAX_MOVIE_ID):
+        if len(possess_nodes[i-1]) == 1:
+            unused_nodes.append(i)
     return unused_nodes
 
 def show_graph():
     color_map = []
     G = nx.Graph()
-    categorized_movies = get_categorized_movies_by_user_preference(movie_description_df, top5_categories, all_reviews_df, 247)
-    categorized_movies_by_selected_category = get_categorized_movies_by_selected_category('mystery', all_reviews_df, movie_description_df, 247)
+    categorized_movies = get_categorized_movies_by_user_preference(movie_description_df, top5_categories, all_reviews_df, 588)
+    categorized_movies_by_selected_category = get_categorized_movies_by_selected_category('film_noir', all_reviews_df, movie_description_df, 588)
     for node in possess_nodes:
         nx.add_star(G, node)
     for node in range(1, 1683):

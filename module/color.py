@@ -83,4 +83,3 @@ def get_color_by_selected_category(label):
         return "gold"
     else:
         return "whitesmoke"
-
