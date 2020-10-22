@@ -10,7 +10,6 @@ from tqdm import tqdm
 from category import get_categorized_movies_by_user_preference, get_user_review_movieIds, get_categorized_movies_by_selected_category, get_all_user_review_numbers
 from preference import get_user_category_preference
 from color import get_color_by_user_reference, get_color_by_selected_category
-from utils import show_histgram
 from datasets import all_reviews_df, movie_description_df
 
 """
