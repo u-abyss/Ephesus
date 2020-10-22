@@ -7,45 +7,15 @@ import statistics
 from scipy import sparse
 from sklearn.metrics.pairwise import pairwise_distances
 from tqdm import tqdm
-from module.category import categorize_movie, categorize_movies_completely, get_categorized_movies_by_user_preference, get_user_review_movieIds, get_categorized_movies_by_selected_category, get_all_user_review_numbers
-from module.preference import get_user_category_preference
-from module.color import get_color_by_user_reference, get_color, get_color_by_selected_category
-from utils.show_histgram import show_histgram
-
-# ユーザ数943人
-# 映画数1682
-
-all_reviews_df = pd.read_csv(
-    './data/u.data',
-    sep='\t',
-    names=['user_id','item_id', 'rating', 'timestamp']
-)
-category_names = [
-    'movie_id', 'movie_title', 'release_date', 'video_release_date', 'imdb_url', 'unknown', 'action', 'adventure',
-    'animation', 'children', 'comedy', 'crime', 'documentary', 'drama', 'fantasy', 'film_noir', 'horror', 'musical',
-    'mystery', 'romance', 'sci_fi', 'thriller', 'war', 'western'
-]
-
-movie_categories = ['unknown', 'action', 'adventure',
-    'animation', 'children', 'comedy', 'crime', 'documentary', 'drama', 'fantasy', 'film_noir', 'horror', 'musical',
-    'mystery', 'romance', 'sci_fi', 'thriller', 'war', 'western']
-# encodingをlatin-1に変更しないとエラーになる
-movie_description_df = pd.read_csv(
-    './data/u.item.csv',
-    sep='|',
-    names=category_names,
-    encoding='latin-1'
-)
-
-delete_columns = ['movie_title','release_date', 'video_release_date', 'imdb_url']
-movie_description_df.drop(delete_columns, axis=1, inplace=True)
+from category import get_categorized_movies_by_user_preference, get_user_review_movieIds, get_categorized_movies_by_selected_category, get_all_user_review_numbers
+from preference import get_user_category_preference
+from color import get_color_by_user_reference, get_color_by_selected_category
+from datasets import all_reviews_df, movie_description_df
 
 """
-各ユーザのレビュー数のヒストグラムを表示する
+指定したユーザのお気にりのカテゴリトップN件を取得する関数
+取得するお気に入りのカテゴリの件数とユーザのuser_idを入力する
 """
-# show_histgram(get_all_user_review_numbers(all_reviews_df), 90)
-
-get_all_user_review_numbers(all_reviews_df)
 
 top5_categories = get_user_category_preference(movie_description_df, all_reviews_df, 5, 588)
 print(top5_categories)
@@ -69,15 +39,6 @@ def compute_movie_similarity(all_reviews_df: pd.DataFrame) -> np.ndarray:
     return movies_similarities
 
 movies_similarities = compute_movie_similarity(all_reviews_df)
-
-# movie_category_dict = categorize_movie(movie_description_df)
-"""
-各映画のその他の映画とのコサイン類似度のヒストグラムを表示
-"""
-# total_row = []
-# for row in movies_similarities:
-#     total_row.extend(row)
-# show_histgram(total_row, 50)
 
 # 各ノードから派生するノード数の配列
 """
@@ -127,12 +88,8 @@ def show_graph():
     categorized_movies_by_selected_category = get_categorized_movies_by_selected_category('film_noir', all_reviews_df, movie_description_df, 588)
     for node in possess_nodes:
         nx.add_star(G, node)
-    for node in range(1, 1683):
-        # 各ノードのカテゴリーに応じてカラーコードを取得する
-        # color_map.append(get_color(node, movie_category_dict))
-
-        # color_map.append(get_color_by_user_reference(node, categorized_movies)) # 見たことある映画とない映画で分けるやつ
-
+    MAX_MOVIE_ID = 1683
+    for node in range(1, MAX_MOVIE_ID):
         """
         見たことあるないで分ける+指定したカテゴリを含む映画で色分け
         """
