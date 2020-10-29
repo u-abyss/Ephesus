@@ -4,5 +4,6 @@ def get_reviewed_movieIds(userId, u_data_org):
     user_watched_movies = []
     for i in target_user_reviews.item_id:
         user_watched_movies.append(i)
+    print(len(user_watched_movies))
     return user_watched_movies
     # print(type((movie_description_org[movie_description_org['movie_id'].isin(user_watched_movies)]).sum()['action'])

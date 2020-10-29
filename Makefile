@@ -2,6 +2,6 @@
 run:
 	cd Ephesus && python main.py
 
-.PHONY: show_hist
-show_hist:
+.PHONY: hist
+hist:
 	cd Ephesus && python histgram.py

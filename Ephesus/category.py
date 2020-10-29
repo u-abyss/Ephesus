@@ -6,6 +6,7 @@ movie_categories = [
     'film_noir', 'horror', 'musical', 'mystery', 'romance', 'sci_fi', 'thriller', 'war', 'western'
 ]
 
+
 def categorize_movies_completely(matrix):
     movie_id = 1
     category_number = 0
@@ -25,12 +26,14 @@ def categorize_movies_completely(matrix):
             movie_id += 1
     return movie_dict
 
+
 """
 categorize_movie()
 各映画を一つのカテゴリーで分ける
 複数のカテゴリーがあるものに一番先頭にあるカテゴリーをその映画のカテゴリーとして定義する
 {movieID: 'category'}
 """
+
 
 def categorize_movie(matrix):
     matrix.drop("movie_id", axis=1, inplace=True)
@@ -45,9 +48,12 @@ def categorize_movie(matrix):
                 continue
     return movie_dict
 
+
 def get_user_review_movieIds(all_reviews_df, user_id):
-    user_review_movieIds = (all_reviews_df[all_reviews_df['user_id'] == user_id + 1]['item_id']).tolist()
+    user_review_movieIds = (
+        all_reviews_df[all_reviews_df['user_id'] == user_id + 1]['item_id']).tolist()
     return user_review_movieIds
+
 
 def get_all_user_review_numbers(all_reviews_df):
     all_user_review_numbers = []
@@ -60,14 +66,16 @@ def get_all_user_review_numbers(all_reviews_df):
         #     count += 1
         all_user_review_numbers.append(len(user_reviews_df))
     # 各ユーザが何本の映画に評価をつけたかに関するタプル型の配列 [(user_id-1, 見た映画の本数)]
-    print(sorted(enumerate(all_user_review_numbers), key=lambda x:x[1], reverse=True))
+    # print(sorted(enumerate(all_user_review_numbers), key=lambda x:x[1], reverse=True))
     return all_user_review_numbers
+
 
 def isUserPreferenceCategory(sum: int) -> bool:
     if sum != 0:
         return True
     else:
         return False
+
 
 """
 各映画を４つに分ける
@@ -76,6 +84,8 @@ def isUserPreferenceCategory(sum: int) -> bool:
 「見たことない映画かつ好きなカテゴリーを含む」
 「見たことない映画かつ好きなカテゴリーを含まない」
 """
+
+
 def get_categorized_movies_by_user_preference(movie_description_df, top5_categories, all_reviews_df, user_id):
     categorized_movies_by_user_preference = []
     user_reviewed_movieIds = get_user_review_movieIds(all_reviews_df, user_id)
@@ -97,11 +107,13 @@ def get_categorized_movies_by_user_preference(movie_description_df, top5_categor
             #     categorized_movies_by_user_preference_append('not_watch_not_fave')
     return categorized_movies_by_user_preference
 
+
 """
 分野横断先のカテゴリーを一つ決定する
 各映画がそのカテゴリーを持っているのかいないのかを判別する
 その映画をみたことがあるのかないのかを判別する
 """
+
 
 def isUserSelectedCategory(label: int) -> bool:
     if label == 1:
@@ -109,16 +121,19 @@ def isUserSelectedCategory(label: int) -> bool:
     else:
         return False
 
+
 def get_categorized_movies_by_selected_category(category: str, all_reviews_df, movie_description_df, user_id):
     categorized_movies_by_selected_category = []
     user_review_movieIds = get_user_review_movieIds(all_reviews_df, user_id)
     categorized_movies_by_selected_category_append = categorized_movies_by_selected_category.append
     for index, label in (movie_description_df.loc[:, category]).iteritems():
-        if index + 1 not in user_review_movieIds: # 未視聴の映画
+        if index + 1 not in user_review_movieIds:  # 未視聴の映画
             if isUserSelectedCategory(label) == True:
-                categorized_movies_by_selected_category_append('selected_category')
+                categorized_movies_by_selected_category_append(
+                    'selected_category')
             else:
-                categorized_movies_by_selected_category_append('not_selected_category')
+                categorized_movies_by_selected_category_append(
+                    'not_selected_category')
         else:
             categorized_movies_by_selected_category_append('watched')
     return categorized_movies_by_selected_category
