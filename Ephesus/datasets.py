@@ -1,9 +1,9 @@
 import pandas as pd
 
 all_reviews_df = pd.read_csv(
-    '../data/u.data',
+    '../data/dataset/u.data',
     sep='\t',
-    names=['user_id','item_id', 'rating', 'timestamp']
+    names=['user_id', 'item_id', 'rating', 'timestamp']
 )
 
 category_names = [
@@ -13,11 +13,12 @@ category_names = [
 ]
 
 movie_description_df = pd.read_csv(
-    '../data/u.item.csv',
+    '../data/dataset/u.item.csv',
     sep='|',
     names=category_names,
     encoding='latin-1'
 )
 
-delete_columns = ['movie_title','release_date', 'video_release_date', 'imdb_url']
+delete_columns = ['movie_title', 'release_date',
+                  'video_release_date', 'imdb_url']
 movie_description_df.drop(delete_columns, axis=1, inplace=True)
