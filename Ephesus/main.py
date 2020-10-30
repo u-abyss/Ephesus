@@ -73,6 +73,8 @@ print(G[28][423]['weight'])
 nx.draw_networkx(G, node_size=200,
                  font_size=4, width=0.2, style='dotted')
 plt.show()
+
+
 # get_all_user_review_numbers(all_reviews_df)
 
 # # 各ノードから派生するノード数の配列
