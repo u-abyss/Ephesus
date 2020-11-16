@@ -84,6 +84,7 @@ def get_each_possess_nodes():
 
 
 possess_nodes = get_each_possess_nodes()
+print(possess_nodes)
 
 """
 各映画が何本の映画とつながっているかを求める関数 [(movie_id, つながっているノードの数)]
