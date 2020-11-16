@@ -90,6 +90,9 @@ def get_unused_nodes():
             unused_nodes.append(i)
     return unused_nodes
 
+"""
+対象ユーザの視聴状況に応じて,　ノードにラベルをつける関数
+"""
 def get_node_color(categorized_movies, categorized_movies_by_selected_category):
     color_map = []
     MAX_MOVIE_ID = 1683
@@ -109,18 +112,6 @@ def show_graph():
     for node in possess_nodes:
         nx.add_star(G, node)
     color_map = get_node_color(categorized_movies, categorized_movies_by_selected_category)
-    # MAX_MOVIE_ID = 1683
-    # for node in range(1, MAX_MOVIE_ID):
-    #     """
-    #     見たことあるないで分ける+指定したカテゴリを含む映画で色分け
-    #     """
-    #     label = categorized_movies[node-1]
-    #     if label == 'watch_fave' or label == 'watch_not_fave':
-    #         color_map.append(get_color_by_user_reference(node, categorized_movies))
-    #     else:
-    #         label = categorized_movies_by_selected_category[node-1]
-    #         color_map.append(get_color_by_selected_category(label))
-
     unused_nodes = get_unused_nodes()
     for i in unused_nodes:
         G.remove_node(i)
