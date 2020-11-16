@@ -24,25 +24,6 @@ print(top5_categories)
 
 movie_similarity = np.load('../data/movie_similarity.npy')
 
-# weighted_egde_list = []
-# for index, row in enumerate(movie_similarity):
-#     tuple_list = []
-#     for _index, similarity in enumerate(row):
-#         if _index >= index + 1:
-#             if similarity <= 1 / 0.7:
-#                 weighted_egde_tuple = (index+1, _index+1, similarity)
-#                 tuple_list.append(weighted_egde_tuple)
-#     weighted_egde_list.append(tuple_list)
-
-# G = nx.Graph()
-# for tuple_list in weighted_egde_list:
-#     G.add_weighted_edges_from(tuple_list)
-# print(nx.dijkstra_path(G, 28, 226, weight='weight'))
-# print(G[28][423]['weight'])
-# nx.draw_networkx(G, node_size=200, font_size=4, width=0.2, style='dotted')
-# plt.show()
-
-
 # get_all_user_review_numbers(all_reviews_df)
 
 # 各ノードから派生するノード数の配列
@@ -66,7 +47,7 @@ def get_each_possess_nodes():
 
 
 possess_nodes = get_each_possess_nodes()
-print(possess_nodes)
+# print(possess_nodes)
 
 """
 各映画が何本の映画とつながっているかを求める関数 [(movie_id, つながっているノードの数)]
@@ -120,4 +101,55 @@ def show_graph():
     nx.draw_networkx(G, node_color=color_map, node_size=200, font_size=4, width=0.2, style='dotted')
     plt.show()
 
-show_graph()
+# show_graph()
+
+def get_edge_weight():
+    weighted_edge_list = [] # 2次元配列
+    for index, row in enumerate(movie_similarity):
+        tuple_list = []
+        for _index, similarity in enumerate(row):
+            if _index >= index + 1: # 各行に対して,　全ての列要素について調べると被りが出てしまうため,　各行において比較対象となる列の要素は,　その行数以上の列とする
+                if similarity <= 1 / 0.7:
+                    weighted_egde_tuple = (index+1, _index+1, similarity) # (node, node, weight)
+                    tuple_list.append(weighted_egde_tuple)
+        weighted_edge_list.append(tuple_list)
+    return weighted_edge_list
+
+def nx_dijkstra():
+    categorized_movies = get_categorized_movies_by_user_preference(movie_description_df, top5_categories, all_reviews_df, 884)
+    categorized_movies_by_selected_category = get_categorized_movies_by_selected_category('documentary', all_reviews_df, movie_description_df, 884)
+    weighted_egde_list = get_edge_weight()
+    print(weighted_egde_list)
+
+    color_map = get_node_color(categorized_movies, categorized_movies_by_selected_category)
+    unused_nodes = get_unused_nodes()
+
+    G = nx.Graph()
+    for tuple_list in weighted_egde_list:
+        G.add_weighted_edges_from(tuple_list)
+    print(nx.dijkstra_path(G, 28, 226, weight='weight'))
+    print(G[28][423]['weight'])
+
+    for i in sorted(unused_nodes, reverse=True):  # reverse=True to prevent offset of index
+        color_map.pop(i)
+    nx.draw_networkx(G, node_color=color_map, node_size=200, font_size=4, width=0.2, style='dotted')
+    plt.show()
+
+# nx_dijkstra()
+
+def test():
+    G = nx.Graph()
+    categorized_movies = get_categorized_movies_by_user_preference(movie_description_df, top5_categories, all_reviews_df, 884)
+    categorized_movies_by_selected_category = get_categorized_movies_by_selected_category('documentary', all_reviews_df, movie_description_df, 884)
+    weighed_egde_list = get_edge_weight()
+    color_map = get_node_color(categorized_movies, categorized_movies_by_selected_category)
+    print(len(color_map))
+    unused_nodes = get_unused_nodes()
+    for index, color in enumerate(color_map):
+        print(color)
+        G.add_nodes_from(index+1, {"color": color})
+    nx.drow_networkx(G)
+    plt.show()
+
+test()
+
