@@ -5,3 +5,7 @@ run:
 .PHONY: hist
 hist:
 	cd Ephesus && python histgram.py
+
+.PHONY: rerun
+rerun:
+	rm data/movie_similarity.npy && cd Ephesus && python similarity.py && python main.py
