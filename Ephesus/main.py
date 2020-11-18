@@ -17,7 +17,8 @@ from similarity import compute_movie_similarity
 指定したユーザのお気にりのカテゴリトップN件を取得する関数
 取得するお気に入りのカテゴリの件数とユーザのuser_idを入力する
 """
-TARGET_USER_ID = 524
+TARGET_USER_ID = 539
+TARGET_CATEGORY = 'crime'
 
 top5_categories = get_user_category_preference(movie_description_df, all_reviews_df, 5, TARGET_USER_ID)
 print(top5_categories)
@@ -53,16 +54,6 @@ def get_linked_list():
 
 
 """
-次数(頂点ごとの辺の数)を求める関数
-"""
-def get_degree_valency():
-    linkded_list = get_linked_list()
-    degree_valencies = []
-    for row in linkded_list:
-        degree_valencies.append(len(row))
-    return sorted(enumerate(degree_valencies), key=lambda x: x[1], reverse=True)
-
-"""
 対象ユーザの視聴状況とお気に入りのカテゴリに応じて,　ノードにラベルをつける関数
 """
 def get_node_color(categorized_movies, categorized_movies_by_selected_category):
@@ -83,18 +74,20 @@ def get_node_color(categorized_movies, categorized_movies_by_selected_category):
 つながりのある映画がない映画を重要度の低い映画とする.
 """
 def get_unused_nodes():
+    linkded_list = get_linked_list()
     unused_nodes = []
     MAX_MOVIE_ID = 1682
     for i in range(1, MAX_MOVIE_ID):
-        if len(possess_nodes[i-1]) == 2:
+        if len(linkded_list[i-1]) == 2:
             unused_nodes.append(i)
     return unused_nodes
 
 def show_graph():
     G = nx.Graph()
     categorized_movies = get_categorized_movies_by_user_preference(movie_description_df, top5_categories, all_reviews_df, TARGET_USER_ID)
-    categorized_movies_by_selected_category = get_categorized_movies_by_selected_category('fantasy', all_reviews_df, movie_description_df, TARGET_USER_ID)
-    for node in possess_nodes:
+    categorized_movies_by_selected_category = get_categorized_movies_by_selected_category('action', all_reviews_df, movie_description_df, TARGET_USER_ID)
+    linkded_list = get_linked_list()
+    for node in linkded_list:
         nx.add_star(G, node)
     color_map = get_node_color(categorized_movies, categorized_movies_by_selected_category)
     unused_nodes = get_unused_nodes()
@@ -104,6 +97,8 @@ def show_graph():
         color_map.pop(i)
     nx.draw_networkx(G, node_color=color_map, node_size=200, font_size=4, width=0.2, style='dotted')
     plt.show()
+
+# show_graph()
 
 """
 重り付きのネットワーク図を描画するための配列を求める関数
@@ -131,10 +126,10 @@ def get_edge_weight():
     return weighted_edge_list, orderd_unique_used_node_indexes
 
 def nx_dijkstra():
-    START_NODE_NUMBER = 226
-    GOAL_NODE_NUMBER = 405
+    START_NODE_NUMBER = 1
+    GOAL_NODE_NUMBER = 100
     categorized_movies = get_categorized_movies_by_user_preference(movie_description_df, top5_categories, all_reviews_df, TARGET_USER_ID)
-    categorized_movies_by_selected_category = get_categorized_movies_by_selected_category('documentary', all_reviews_df, movie_description_df, TARGET_USER_ID)
+    categorized_movies_by_selected_category = get_categorized_movies_by_selected_category(TARGET_CATEGORY, all_reviews_df, movie_description_df, TARGET_USER_ID)
     weighted_egde_list, orderd_unique_used_node_indexes = get_edge_weight()
 
     color_map = get_node_color(categorized_movies, categorized_movies_by_selected_category)
@@ -143,7 +138,7 @@ def nx_dijkstra():
     for tuple_list in weighted_egde_list:
         G.add_weighted_edges_from(tuple_list)
     print(nx.dijkstra_path(G, START_NODE_NUMBER, GOAL_NODE_NUMBER, weight='weight'))
-    # print(G[784][438]['weight'])
+    # print(G[START_NODE_NUMBER][GOAL_NODE_NUMBER]['weight'])
 
     new_color_map = []
     for idx in orderd_unique_used_node_indexes:
