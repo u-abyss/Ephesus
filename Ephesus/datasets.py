@@ -19,6 +19,5 @@ movie_description_df = pd.read_csv(
     encoding='latin-1'
 )
 
-delete_columns = ['movie_title', 'release_date',
-                  'video_release_date', 'imdb_url']
+delete_columns = ['movie_title', 'release_date', 'video_release_date', 'imdb_url']
 movie_description_df.drop(delete_columns, axis=1, inplace=True)

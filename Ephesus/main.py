@@ -17,18 +17,21 @@ from similarity import compute_movie_similarity
 指定したユーザのお気にりのカテゴリトップN件を取得する関数
 取得するお気に入りのカテゴリの件数とユーザのuser_idを入力する
 """
+TARGET_USER_ID = 524
 
-top5_categories = get_user_category_preference(
-    movie_description_df, all_reviews_df, 5, 884)
+top5_categories = get_user_category_preference(movie_description_df, all_reviews_df, 5, TARGET_USER_ID)
 print(top5_categories)
 
-movie_similarity = np.load('../data/movie_similarity.npy')
+# get_all_user_review_numbers(all_reviews_df)
 
-get_all_user_review_numbers(all_reviews_df)
+
+# 映画間の類似度の行列
+movie_similarity = np.load('../data/movie_similarity.npy')
 
 """
 連結リストを求める関数
 連結リスト : どのノードがどのノードと連結しているかを表すデータ構造
+映画間の類似度が設定した閾値以上である時,　連結させる
 返り値 : 連結リスト
 
 ex
@@ -36,7 +39,6 @@ ex
 各配列のindex:0のmovie_idの映画と連結しているmovie_idをそれ以降に格納.
 連結している映画がない時は,　そのmovie_idが２つ並ぶ.
 """
-
 def get_linked_list():
     linkded_list = []  # 各ノードが持つノードを列挙した二次元配列
     similarity_criterion = 1 / 0.65
@@ -50,12 +52,11 @@ def get_linked_list():
     return linkded_list
 
 
-linkded_list = get_linked_list()
-
 """
 次数(頂点ごとの辺の数)を求める関数
 """
 def get_degree_valency():
+    linkded_list = get_linked_list()
     degree_valencies = []
     for row in linkded_list:
         degree_valencies.append(len(row))
@@ -91,8 +92,8 @@ def get_unused_nodes():
 
 def show_graph():
     G = nx.Graph()
-    categorized_movies = get_categorized_movies_by_user_preference(movie_description_df, top5_categories, all_reviews_df, 884)
-    categorized_movies_by_selected_category = get_categorized_movies_by_selected_category('documentary', all_reviews_df, movie_description_df, 884)
+    categorized_movies = get_categorized_movies_by_user_preference(movie_description_df, top5_categories, all_reviews_df, TARGET_USER_ID)
+    categorized_movies_by_selected_category = get_categorized_movies_by_selected_category('fantasy', all_reviews_df, movie_description_df, TARGET_USER_ID)
     for node in possess_nodes:
         nx.add_star(G, node)
     color_map = get_node_color(categorized_movies, categorized_movies_by_selected_category)
@@ -118,7 +119,7 @@ def get_edge_weight():
         weight_tuple_list = []
         for index_x, similarity in enumerate(row):
             if index_x >= index_y + 1: # 各行に対して,　全ての列要素について調べると被りが出てしまうため,　各行において比較対象となる列の要素は,　その行数以上の列とする
-                if similarity <= 1 / 0.7:
+                if similarity <= 1 / 0.65:
                     weighted_egde_tuple = (index_y+1, index_x+1, similarity) # (node, node, weight)
                     weight_tuple_list.append(weighted_egde_tuple)
                     used_node_indexes.append(index_y)
@@ -132,8 +133,8 @@ def get_edge_weight():
 def nx_dijkstra():
     START_NODE_NUMBER = 226
     GOAL_NODE_NUMBER = 405
-    categorized_movies = get_categorized_movies_by_user_preference(movie_description_df, top5_categories, all_reviews_df, 884)
-    categorized_movies_by_selected_category = get_categorized_movies_by_selected_category('documentary', all_reviews_df, movie_description_df, 884)
+    categorized_movies = get_categorized_movies_by_user_preference(movie_description_df, top5_categories, all_reviews_df, TARGET_USER_ID)
+    categorized_movies_by_selected_category = get_categorized_movies_by_selected_category('documentary', all_reviews_df, movie_description_df, TARGET_USER_ID)
     weighted_egde_list, orderd_unique_used_node_indexes = get_edge_weight()
 
     color_map = get_node_color(categorized_movies, categorized_movies_by_selected_category)

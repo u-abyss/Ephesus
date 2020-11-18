@@ -7,47 +7,12 @@ movie_categories = [
 ]
 
 
-def categorize_movies_completely(matrix):
-    movie_id = 1
-    category_number = 0
-    for row in matrix.itertuples():
-        categories = []
-        for i in range(1, 20):
-            if row[i] == 1:
-                categories.append(i)
-        if categories not in all_categories:
-            all_categories.append(categories)
-            category_number = all_categories.index(categories)
-            movie_dict.setdefault(movie_id, category_number)
-            movie_id += 1
-        else:
-            category_number = all_categories.index(categories)
-            movie_dict.setdefault(movie_id, category_number)
-            movie_id += 1
-    return movie_dict
-
-
 """
 categorize_movie()
 各映画を一つのカテゴリーで分ける
 複数のカテゴリーがあるものに一番先頭にあるカテゴリーをその映画のカテゴリーとして定義する
 {movieID: 'category'}
 """
-
-
-def categorize_movie(matrix):
-    matrix.drop("movie_id", axis=1, inplace=True)
-    movie_id = 1
-    for row in matrix.itertuples():
-        for i in range(1, 20):
-            if row[i] == 1:
-                movie_dict.setdefault(movie_id, movie_categories[i-1])
-                movie_id += 1
-                break
-            else:
-                continue
-    return movie_dict
-
 
 def get_user_review_movieIds(all_reviews_df, user_id):
     user_review_movieIds = (
@@ -66,7 +31,7 @@ def get_all_user_review_numbers(all_reviews_df):
         #     count += 1
         all_user_review_numbers.append(len(user_reviews_df))
     # 各ユーザが何本の映画に評価をつけたかに関するタプル型の配列 [(user_id-1, 見た映画の本数)]
-    # print(sorted(enumerate(all_user_review_numbers), key=lambda x:x[1], reverse=True))
+    print(sorted(enumerate(all_user_review_numbers), key=lambda x:x[1], reverse=True))
     return all_user_review_numbers
 
 
