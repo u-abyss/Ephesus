@@ -42,7 +42,6 @@ print(compute_path_weight(route_list, normalized_values))
 final_route_list = compute_path_weight(route_list, normalized_values)
 
 
-
 # ノードの数
 NODE_NUM = len(final_route_list)
 
