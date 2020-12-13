@@ -1,8 +1,15 @@
-import request
 from bs4 import BeautifulSoup
-import re
+import urllib.request, urllib.error
 
-urlName = "http://dbpedia.org/page/"
-target_url = request.get(urlName)
-soup = BeautifulSoup(target_url.content, "html.parser")
+url = "http://dbpedia.org/page/Ornella_Vanoni"
 
+html = urllib.request.urlopen(url)
+
+soup = BeautifulSoup(html, "html.parser")
+
+elems = soup.find_all(rel="dbo:genre")
+
+for elem in elems:
+    text = elem.text
+    category = text.replace("dbr:", "")
+    print(category)
