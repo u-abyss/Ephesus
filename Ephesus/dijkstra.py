@@ -1,27 +1,67 @@
 import math
 from typing import List, Dict
 
-route_list = [[0, 50, 80, 0, 0], [0, 0, 20, 15, 0], [0, 0, 0, 10, 15], [
-    0, 0, 0, 0, 30], [0, 0, 0, 0, 0]]  # 初期のノード間の距離のリスト
+route_list = [[0, 0.8, 0.6, 0, 0], [0, 0, 0.5, 0.4, 0], [0, 0, 0, 0.9, 0.2], [
+    0, 0, 0, 0, 0.8], [0, 0, 0, 0, 0]]  # 初期のノード間の距離のリスト
 
-NODE_NUM = len(route_list)  # ノードの数
+# 各ノードが持つユーザのお気に入りのカテゴリの数
+fave_categories_nums = [1, 0, 3, 2, 2]
 
-unsearched_nodes = list(range(NODE_NUM))  # 未探索ノード
+"""
+min-maxスケーリングにより，正規化を行う
+l(normalization) = l(i) - s(最大値) / s(最大値) - 0(最小値)
+s = 3
+"""
+def normalize(fave_categories_nums):
+    normallzed_values = []
+    for fave_num in fave_categories_nums:
+        l = (fave_num - 0) / 3
+        print(l)
+        if l == 0:
+            l = 0.1
+        normallzed_values.append(l)
+    return normallzed_values
+
+normalized_values = normalize(fave_categories_nums)
+print(normalized_values)
+
+def compute_path_weight(route_list, normallzed_values):
+    final_route_list = []
+    for row in route_list:
+        new_row = []
+        for index, similarity in enumerate(row):
+            final_path_weight = similarity * normalized_values[index]
+            if final_path_weight != 0:
+                final_path_weight = 1 / final_path_weight
+            new_row.append(final_path_weight)
+        final_route_list.append(new_row)
+    return final_route_list
+
+print(compute_path_weight(route_list, normalized_values))
+
+final_route_list = compute_path_weight(route_list, normalized_values)
+
+
+# ノードの数
+NODE_NUM = len(final_route_list)
+
+# 未探索のノード
+unsearched_nodes = list(range(NODE_NUM))
 # ノードごとの距離のリスト　(スタート地点から各ノードまでの距離)
 distances_from_start = [math.inf] * NODE_NUM
 previous_nodes = [-1] * NODE_NUM  # 最短経路でそのノードのひとつ前に到達するノードのリスト
 distances_from_start[0] = 0  # 初期のノードの距離は0とする
 
-
 """
 未探索ノードのうち,　そのノードまでの距離が最小のノードのindexを返す関数
 """
-
-
 def get_target_index(min_distance: float, distances_from_start: List[int], unsearched_nodes: List[int]) -> int:
-    start = 0
+    start = 0 # 検索をスタートする位置
     while True:
-        index = distances_from_start.index(min_distance, start)
+        index = distances_from_start.index(min_distance, start) # 最小の距離のノードのインデックス
+        """
+        まだ探索していないノードの対象のインデックスがある場合は，
+        """
         found = index in unsearched_nodes
         if found:
             return index
@@ -33,8 +73,6 @@ def get_target_index(min_distance: float, distances_from_start: List[int], unsea
 未探索のノードのうち,　距離が最も短いものを見つける
 返り値として,　最小の距離の値を返す.
 """
-
-
 def get_min_distance(distances_from_start, unsearched_nodes):
     min_distance = math.inf  # 最小の距離を保持する変数. 初期値はmath.inf
     for node_index in unsearched_nodes:
@@ -47,12 +85,11 @@ def get_min_distance(distances_from_start, unsearched_nodes):
 
 while(len(unsearched_nodes) != 0):  # 未探索ノードがなくなるまで繰り返す
     min_distance = get_min_distance(distances_from_start, unsearched_nodes)
-    target_index = get_target_index(
-        min_distance, distances_from_start, unsearched_nodes)  # 未探索ノードのうちで最小のindex番号を取得
+    target_index = get_target_index(min_distance, distances_from_start, unsearched_nodes)  # 未探索ノードのうちで最小のindex番号を取得
     unsearched_nodes.remove(target_index)  # ここで探索するので未探索リストから除去
-    target_edge = route_list[target_index]  # ターゲットになるノードからのびるエッジのリスト
-    for index, route_dis in enumerate(target_edge):
-        if route_dis != 0:
+    edges_from_target_node = final_route_list[target_index]  # ターゲットになるノードからのびるエッジのリスト
+    for index, route_dis in enumerate(edges_from_target_node):
+        if route_dis != 0: # 経路のコストは通過済みの経路となるため考慮しない．
             if distances_from_start[index] > (distances_from_start[target_index] + route_dis):
                 # 過去に設定されたdistanceよりも小さい場合はdistanceを更新
                 distances_from_start[index] = distances_from_start[target_index] + route_dis
