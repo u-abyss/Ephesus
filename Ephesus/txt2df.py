@@ -3,8 +3,8 @@ import pandas as pd
 from show_network import show_graph
 
 
-similarity_df = pd.read_table('../artist_similarity.txt')
-artist_data_df = pd.read_table('../atrist_data.txt')
+similarity_df = pd.read_table('../music_data/artist_similarity.txt')
+artist_data_df = pd.read_table('../music_data/atrist_data.txt')
 
 print(artist_data_df)
 
