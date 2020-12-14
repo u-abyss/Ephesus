@@ -46,36 +46,3 @@ def get_artist_category(urls):
 
 # np.save('../data/np_artist_name_category', name_and_categories)
 print(np.load('../data/np_artist_name_category.npy', allow_pickle=True))
-
-
-
-# url = "http://dbpedia.org/page/Lena_Horne"
-
-# html = urllib.request.urlopen(url)
-
-# soup = BeautifulSoup(html, "html.parser")
-
-# elems = soup.find_all(rel="dbo:genre")
-# print("elems", elems)
-
-# # for elem in elems:
-# #     text = elem.text
-# #     category = text.replace("dbr:", "")
-# #     print(category)
-
-# urls = ['http://dbpedia.org/resource/Simon_&_Garfunkel', 'http://dbpedia.org/resource/Jason_Becker']
-# for url in urls:
-#     # try:
-#         html = urllib.request.urlopen(url)
-
-#         soup = BeautifulSoup(html, "html.parser")
-
-#         elems = soup.find_all(rel="dbo:genre")
-#         print("elems", elems)
-    # except:
-    #     pass
-
-# for elem in elems:
-#     text = elem.text
-#     category = text.replace("dbr:", "")
-#     print(category)
