@@ -25,6 +25,10 @@ def normalize(fave_categories_nums):
 normalized_values = normalize(fave_categories_nums)
 print(normalized_values)
 
+"""
+好きなカテゴリーの数が0の時は，掛けない
+"""
+
 def compute_path_weight(route_list, normallzed_values):
     final_route_list = []
     for row in route_list:
