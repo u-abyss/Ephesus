@@ -1,21 +1,23 @@
 import mysql.connector as mydb
+import os
+from os.path import join, dirname
+from dotenv import load_dotenv
 
-conn = mydb.connect(
-    host="localhost",
-    port="3306",
-    user="root",
-    password="Okyu8-0449",
-    database="spotify",
+load_dotenv(verbose=True)
+
+dotenv_path = join(dirname(__file__), '.env')
+load_dotenv(dotenv_path)
+
+DB_HOST=os.environ.get("DB_HOST")
+DB_PORT=os.environ.get("DB_PORT")
+DB_USER=os.environ.get("DB_USER")
+DB_PASSWORD=os.environ.get("DB_PASSWORD")
+DB_DATABASE=os.environ.get("DB_DATABASE")
+
+sql_config = mydb.connect(
+    host=DB_HOST,
+    port=DB_PORT,
+    user=DB_USER,
+    password=DB_PASSWORD,
+    database=DB_DATABASE,
 )
-
-conn.ping(reconnect=True)
-
-# DB操作のカーソル
-cur = conn.cursor()
-
-cur.execute("SELECT * FROM playlist WHERE num_followers >= 100;")
-
-rows = cur.fetchall()
-for row in rows:
-    print(row)
-
