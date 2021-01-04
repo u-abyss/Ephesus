@@ -1,14 +1,14 @@
 import pandas as pd
 import numpy as np
 
-from show_network import show_graph
+# from show_network import show_graph
 
 
 similarity_df = pd.read_table('../music_data/artist_similarity.txt')
 artist_data_df = pd.read_table('../music_data/atrist_data.txt')
 
 # print(similarity_df)
-print(artist_data_df.iloc[:, 1])
+# print(artist_data_df.iloc[:, :2])
 
 
 artist_categories = np.load('../data/np_artist_name_category.npy', allow_pickle=True)
