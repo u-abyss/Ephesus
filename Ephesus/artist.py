@@ -28,12 +28,33 @@ def get_artist_id_from_name(playlist):
         artist_ids.append(splited_id)
     return artist_ids
 
-for playlist in good_playlist_artists:
-    artist_ids = get_artist_id_from_name(playlist)
-    print(artist_ids)
+# for playlist in good_playlist_artists:
+#     artist_ids = get_artist_id_from_name(playlist)
+#     print(artist_ids)
+
+similar_artists_arr = get_similar_artists_arr()
+
+artist_ids = get_artist_id_from_name(good_playlist_artists[0])
+print(artist_ids)
+
+def get_used_similar_artists_arr(artist_ids):
+    used_arr = []
+    for id in artist_ids:
+        for arr in similar_artists_arr:
+            if id == arr[0]:
+                used_arr.append(arr)
+    return used_arr
+
+used_arr = get_used_similar_artists_arr(artist_ids)
+
+print(used_arr)
+
+
+
 
 
 # def get_node_fave_categories_num(artist_categories, user_fave_categories):
+
 
 
 
