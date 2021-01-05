@@ -82,11 +82,11 @@ def find_good_playlist(playlist_ids):
 
 
 # 実験に使えそうなプレイリストに対応したアーティスト名の配列とそのアーティストのカテゴリの配列を返す
-#TODO: カテゴリを算出できるアーティストのみを返す
 good_playlists, good_playlist_artists = find_good_playlist(playlist_ids)
 
-print(good_playlist_artists)
-# print(len(good_playlist_artists))
-print("================")
-print(good_playlists)
+# print(good_playlist_artists)
+# print("================")
+# # print(good_playlists)
+# for playlist in good_playlists:
+#     print(playlist)
 
