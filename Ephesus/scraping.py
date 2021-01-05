@@ -41,8 +41,4 @@ def get_artist_category(urls):
             pass
     return name_and_categories
 
-# print(get_artist_category(name_and_url_list))
-# name_and_categories = get_artist_category(name_and_url_list)
-
-# np.save('../data/np_artist_name_category', name_and_categories)
 print(np.load('../data/np_artist_name_category.npy', allow_pickle=True))

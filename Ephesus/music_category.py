@@ -2,15 +2,13 @@ import numpy as np
 
 from sqlconfig import sql_config
 
-artist_categories = np.load('../data/np_artist_name_category.npy', allow_pickle=True)
-
 sql_config.ping(reconnect=True)
 
 # DB操作のカーソル
 cur = sql_config.cursor()
 
 # 対象とするプレイリストのidを取得
-cur.execute("SELECT id FROM playlist WHERE num_followers >= 1000;")
+cur.execute("SELECT id FROM playlist WHERE num_followers >= 50;")
 
 rows = cur.fetchall()
 playlist_ids = [item[0] for item in rows]
@@ -49,12 +47,16 @@ def fetch_artist_names(album_ids):
 """
 アーティスト名の配列から，各アーティストが属するカテゴリの配列を取得する関数
 """
+
 def get_artist_categories(lowered_artist_names):
+    artist_categories = np.load('../data/np_artist_name_category.npy', allow_pickle=True)
     categories = []
+    artists = []
     for row in artist_categories:
         if row[0] in lowered_artist_names:
             categories.append(row[1])
-    return categories
+            artists.append(row[0])
+    return categories, artists
 
 """
 検証実験に使用できそうなプレイリストを返す関数
@@ -62,16 +64,34 @@ def get_artist_categories(lowered_artist_names):
 """
 def find_good_playlist(playlist_ids):
     good_playlists = []
+    good_playlist_artists = []
     for playlist_id in playlist_ids:
         track_ids = fetch_track_ids(playlist_id)
         album_ids = fetch_album_ids(track_ids)
         artist_names = fetch_artist_names(album_ids)
         # 大文字小文字を区別せずに，配列に含まれているかどうかをチェックするため，artist_namesの要素を全て小文字に変換する
         lowered_artist_names = list(map(lambda name: name.lower(), artist_names))
-        artist_categories = get_artist_categories(lowered_artist_names)
+        artist_categories, artists = get_artist_categories(lowered_artist_names)
         if len(artist_categories) != 0:
-            good_playlists.append(artist_categories)
-    return good_playlists
+            if len(artist_categories) >= 4:
+                good_playlists.append(artist_categories)
+                good_playlist_artists.append(artists)
+    return good_playlists, good_playlist_artists
 
-print(find_good_playlist(playlist_ids))
 
+# 実験に使えそうなプレイリストに対応したアーティスト名の配列とそのアーティストのカテゴリの配列を返す
+good_playlists, good_playlist_artists = find_good_playlist(playlist_ids)
+
+# print(good_playlists[3])
+
+# for row in good_playlists[3]:
+#     print(row)
+
+# print(good_playlist_artists)
+print(len(good_playlist_artists))
+
+"""
+実験対象になりうるデータ
+50:3
+
+"""
