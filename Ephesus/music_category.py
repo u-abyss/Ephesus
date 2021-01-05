@@ -2,15 +2,13 @@ import numpy as np
 
 from sqlconfig import sql_config
 
-
-
 sql_config.ping(reconnect=True)
 
 # DB操作のカーソル
 cur = sql_config.cursor()
 
 # 対象とするプレイリストのidを取得
-cur.execute("SELECT id FROM playlist WHERE num_followers >= 1000;")
+cur.execute("SELECT id FROM playlist WHERE num_followers >= 50;")
 
 rows = cur.fetchall()
 playlist_ids = [item[0] for item in rows]
@@ -84,9 +82,16 @@ def find_good_playlist(playlist_ids):
 # 実験に使えそうなプレイリストに対応したアーティスト名の配列とそのアーティストのカテゴリの配列を返す
 good_playlists, good_playlist_artists = find_good_playlist(playlist_ids)
 
-# print(good_playlist_artists)
-# print("================")
-# # print(good_playlists)
-# for playlist in good_playlists:
-#     print(playlist)
+# print(good_playlists[3])
 
+# for row in good_playlists[3]:
+#     print(row)
+
+# print(good_playlist_artists)
+print(len(good_playlist_artists))
+
+"""
+実験対象になりうるデータ
+50:3
+
+"""

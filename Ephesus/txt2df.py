@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-# from show_network import show_graph
 
 similarity_df = pd.read_table('../music_data/artist_similarity.txt')
 
