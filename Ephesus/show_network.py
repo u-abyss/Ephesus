@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import networkx as nx
-from artist import similar_artists_arr, used_arr
+# from artist import similar_artists_arr, used_arr
 
 def show_graph(nodes):
     G = nx.Graph()
@@ -17,5 +17,7 @@ nodes = [
     [4, 1, 4, 10],
 ]
 
-show_graph(used_arr)
+
+
+# show_graph(used_arr)
 # show_graph(nodes)
