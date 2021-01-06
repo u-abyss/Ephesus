@@ -8,7 +8,7 @@ sql_config.ping(reconnect=True)
 cur = sql_config.cursor()
 
 # 対象とするプレイリストのidを取得
-cur.execute("SELECT id FROM playlist WHERE num_followers >= 1;")
+cur.execute("SELECT id FROM playlist WHERE num_followers >= 1000;")
 
 rows = cur.fetchall()
 playlist_ids = [item[0] for item in rows]
@@ -42,6 +42,7 @@ def fetch_artist_names(album_ids):
     cur.execute(query, tuple(album_ids))
     rows = cur.fetchall()
     artist_names = [item[0] for item in rows]
+    print(artist_names)
     return artist_names
 
 """
@@ -73,17 +74,20 @@ def find_good_playlist(playlist_ids):
         lowered_artist_names = list(map(lambda name: name.lower(), artist_names))
         artist_categories, artists = get_artist_categories(lowered_artist_names)
         if len(artist_categories) != 0:
-            if len(artist_categories) >= 4:
+            if len(artist_categories) >= 2:
                 good_playlists.append(artist_categories)
                 good_playlist_artists.append(artists)
     return good_playlists, good_playlist_artists
 
-
 # 実験に使えそうなプレイリストに対応したアーティスト名の配列とそのアーティストのカテゴリの配列を返す
 good_playlists, good_playlist_artists = find_good_playlist(playlist_ids)
 
-np.save('../data/np_good_playlists', good_playlists)
-np.save('../data/np_good_playlists_artists', good_playlist_artists)
+# print(good_playlist_artists)
+# print("====================")
+# print(good_playlists)
+
+# np.save('../data/np_good_playlists', good_playlists)
+# np.save('../data/np_good_playlists_artists', good_playlist_artists)
 
 # print(good_playlists[3])
 
@@ -91,7 +95,7 @@ np.save('../data/np_good_playlists_artists', good_playlist_artists)
 #     print(row)
 
 # print(good_playlist_artists)
-print(len(good_playlist_artists))
+# print(len(good_playlist_artists))
 
 """
 実験対象になりうるデータ

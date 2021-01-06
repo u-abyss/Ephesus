@@ -128,11 +128,7 @@ all_connected_playlists_idxs = [
     384,
     386
 ]
-
-# for i in all_connected_playlists_idxs:
-#     artist_ids = get_artist_id_from_name(good_playlist_artists[i])
-#     used_arr = get_used_similar_artists_arr(artist_ids)
-#     show_graph(used_arr)
+print(len(all_connected_playlists_idxs))
 
 def get_categories(playlist):
     all_categories = []
@@ -143,11 +139,17 @@ def get_categories(playlist):
 
 for i in all_connected_playlists_idxs:
     if len(good_playlists[i]) > 5:
-        print(i)
+        # print(i)
         print(good_playlists[i])
-        print(len(good_playlists[i]))
-        print(get_categories(good_playlists[i]))
+        print("\n")
+        get_categories(good_playlists[i])
         print("================================")
+
+# for i in all_connected_playlists_idxs:
+#     if len(good_playlists_artists[i]) > 5:
+#         print(i)
+#         print(good_playlists_artists[i])
+#         print("================================")
 
 def get_unique_categories():
     all_categories = []
@@ -159,25 +161,22 @@ def get_unique_categories():
     for category in unique_categories:
         replaced_category = category.replace("_", ' ')
         final_arr.append(replaced_category)
-    print(len(final_arr))
-    print(len(unique_categories))
     return final_arr
 
 # unique_categories = get_unique_categories()
 # print(unique_categories)
 
-# お気に入りのカテゴリ上位k件
-def get_category_count():
-    for i in all_connected_playlists_idxs:
-        all_categories = []
-        for categories in good_playlists[i]:
-            all_categories.extend(categories)
-        c = collections.Counter(all_categories)
-        print(c)
-        print("===========")
+# お気に入りのカテゴリ上位k件取得
+# def get_category_count():
+#     for i in all_connected_playlists_idxs:
+#         all_categories = []
+#         for categories in good_playlists[i]:
+#             all_categories.extend(categories)
+#         c = collections.Counter(all_categories)
+#         print(c)
+#         print("===========")
 
-# get_category_count()
-
-
-# print(len(good_playlists))
-# print(len(good_playlists_artists))
+# for i in all_connected_playlists_idxs:
+#     artist_ids = get_artist_id_from_name(good_playlist_artists[i])
+#     used_arr = get_used_similar_artists_arr(artist_ids)
+#     show_graph(used_arr)
