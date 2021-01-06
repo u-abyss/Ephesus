@@ -1,6 +1,10 @@
+import collections
 import numpy as np
 from txt2df import similarity_df, artist_data_df
-from music_category import good_playlist_artists
+from show_network import show_graph
+from npy2arr import good_playlists_artists, good_playlists
+
+# from music_category import good_playlist_artists
 
 def get_similar_artists_arr():
     similar_artists_arr = []
@@ -30,12 +34,6 @@ def get_artist_id_from_name(playlist):
 
 similar_artists_arr = get_similar_artists_arr()
 
-artist_ids = get_artist_id_from_name(good_playlist_artists[3])
-print(artist_ids)
-
-for row in good_playlist_artists[3]:
-    print(row)
-
 """
 プレイリストの曲のアーティストidから，グラフ構築に使用する配列を取得する関数
 """
@@ -47,11 +45,138 @@ def get_used_similar_artists_arr(artist_ids):
                 used_arr.append(arr)
     return used_arr
 
-used_arr = get_used_similar_artists_arr(artist_ids)
+all_connected_playlists_idxs = [
+    3,
+    5,
+    7,
+    22,
+    34,
+    37,
+    38,
+    40,
+    55,
+    63,
+    64,
+    68,
+    69,
+    70,
+    71,
+    72,
+    82,
+    85,
+    86,
+    88,
+    94,
+    95,
+    101,
+    127,
+    132,
+    133,
+    139,
+    143,
+    146,
+    155,
+    160,
+    161,
+    168,
+    178,
+    181,
+    184,
+    190,
+    193,
+    199,
+    200,
+    212,
+    213,
+    218,
+    225,
+    226,
+    229,
+    236,
+    240,
+    249,
+    255,
+    264,
+    272,
+    278,
+    279,
+    281,
+    284,
+    290,
+    293,
+    301,
+    304,
+    313,
+    315,
+    318,
+    319,
+    320,
+    322,
+    328,
+    336,
+    338,
+    343,
+    348,
+    365,
+    367,
+    370,
+    372,
+    373,
+    374,
+    377,
+    380,
+    384,
+    386
+]
+print(len(all_connected_playlists_idxs))
 
+def get_categories(playlist):
+    all_categories = []
+    for category in playlist:
+        all_categories.extend(category)
+    c = collections.Counter(all_categories)
+    print(c)
 
-# def get_node_fave_categories_num(artist_categories, user_fave_categories):
+for i in all_connected_playlists_idxs:
+    if len(good_playlists[i]) > 5:
+        # print(i)
+        print(good_playlists[i])
+        print("\n")
+        get_categories(good_playlists[i])
+        print("================================")
 
+# for i in all_connected_playlists_idxs:
+#     if len(good_playlists_artists[i]) > 5:
+#         print(i)
+#         print(good_playlists_artists[i])
+#         print("================================")
 
+def get_unique_categories():
+    all_categories = []
+    for i in all_connected_playlists_idxs:
+        for categories in good_playlists[i]:
+            all_categories.extend(categories)
+    unique_categories = list(set(all_categories))
+    final_arr = []
+    for category in unique_categories:
+        replaced_category = category.replace("_", ' ')
+        final_arr.append(replaced_category)
+    return final_arr
 
+# unique_categories = get_unique_categories()
+# print(unique_categories)
 
+# お気に入りのカテゴリ上位k件取得
+# def get_category_count():
+#     for i in all_connected_playlists_idxs:
+#         all_categories = []
+#         for categories in good_playlists[i]:
+#             all_categories.extend(categories)
+#         c = collections.Counter(all_categories)
+#         print(c)
+#         print("===========")
+
+# for i in all_connected_playlists_idxs:
+#     artist_ids = get_artist_id_from_name(good_playlist_artists[i])
+#     used_arr = get_used_similar_artists_arr(artist_ids)
+#     show_graph(used_arr)
