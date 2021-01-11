@@ -27,10 +27,14 @@ import numpy as np
 # print(a)
 # print(a.shape)
 
-a = np.arange(3)
-print(a)
-b = np.arange(3)
+# a = np.arange(3)
+# print(a)
+# b = np.arange(3)
 
-result = a @ b
-print(result)
-print(type(result))
+# result = a @ b
+# print(result)
+# print(type(result))
+
+x = np.load("../ismir04_genre/npy/reverse/artist_106_album_2_track_3.npy")
+y = np.load("../ismir04_genre/npy/reverse/artist_46_album_1_track_3.npy")
+print(y)
