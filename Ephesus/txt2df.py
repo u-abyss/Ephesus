@@ -36,5 +36,5 @@ import numpy as np
 # print(type(result))
 
 x = np.load("../ismir04_genre/npy/reverse/artist_106_album_2_track_3.npy")
-y = np.load("../ismir04_genre/npy/reverse/artist_46_album_1_track_3.npy")
+y = np.load("../ismir04_genre/similarities/artist_26_album_1_track_2.npy")
 print(y)
