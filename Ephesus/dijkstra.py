@@ -6,58 +6,70 @@ route_listの[0,0]がスタートノード
             [n, n]がゴールノード
 """
 
+# route_list = [
+#     [0, 0.8, 0.6, 0, 0],
+#     [0, 0, 0.5, 0.4, 0],
+#     [0, 0, 0, 0.9, 0.2],
+#     [0, 0, 0, 0, 0.8],
+#     [0, 0, 0, 0, 0]
+# ]  # 初期のノード間の距離のリスト
+
 route_list = [
-    [0, 0.8, 0.6, 0, 0],
-    [0, 0, 0.5, 0.4, 0],
-    [0, 0, 0, 0.9, 0.2],
-    [0, 0, 0, 0, 0.8],
-    [0, 0, 0, 0, 0]
-]  # 初期のノード間の距離のリスト
+    [0, 0.8, 0.6, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0.5, 0.4, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0.9, 0.2, 0.7, 0, 0, 0],
+    [0, 0, 0, 0, 0.8, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0.5, 0.4, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0.9, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0.8],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0.6],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+]
 
-# 各ノードが持つユーザのお気に入りのカテゴリの数
-fave_categories_nums = [1, 0, 3, 2, 2]
+# # 各ノードが持つユーザのお気に入りのカテゴリの数
+# fave_categories_nums = [1, 0, 3, 2, 2]
 
-"""
-min-maxスケーリングにより，正規化を行う
-l(normalization) = l(i) - s(最大値) / s(最大値) - 0(最小値)
-s = 3
-"""
-def normalize(fave_categories_nums):
-    normallzed_values = []
-    for fave_num in fave_categories_nums:
-        l = (fave_num - 0) / 3
-        print(l)
-        if l == 0:
-            l = 0.1
-        normallzed_values.append(l)
-    return normallzed_values
+# """
+# min-maxスケーリングにより，正規化を行う
+# l(normalization) = l(i) - s(最大値) / s(最大値) - 0(最小値)
+# s = 3
+# """
+# def normalize(fave_categories_nums):
+#     normallzed_values = []
+#     for fave_num in fave_categories_nums:
+#         l = (fave_num - 0) / 3
+#         print(l)
+#         if l == 0:
+#             l = 0.1
+#         normallzed_values.append(l)
+#     return normallzed_values
 
-normalized_values = normalize(fave_categories_nums)
-print(normalized_values)
+# normalized_values = normalize(fave_categories_nums)
+# print(normalized_values)
 
-"""
-好きなカテゴリーの数が0の時は，掛けない
-"""
+# """
+# 好きなカテゴリーの数が0の時は，掛けない
+# """
 
-def compute_path_weight(route_list, normallzed_values):
-    final_route_list = []
-    for row in route_list:
-        new_row = []
-        for index, similarity in enumerate(row):
-            final_path_weight = similarity * normalized_values[index]
-            if final_path_weight != 0:
-                final_path_weight = 1 / final_path_weight
-            new_row.append(final_path_weight)
-        final_route_list.append(new_row)
-    return final_route_list
+# def compute_path_weight(route_list, normallzed_values):
+#     final_route_list = []
+#     for row in route_list:
+#         new_row = []
+#         for index, similarity in enumerate(row):
+#             final_path_weight = similarity * normalized_values[index]
+#             if final_path_weight != 0:
+#                 final_path_weight = 1 / final_path_weight
+#             new_row.append(final_path_weight)
+#         final_route_list.append(new_row)
+#     return final_route_list
 
-print(compute_path_weight(route_list, normalized_values))
+# print(compute_path_weight(route_list, normalized_values))
 
-final_route_list = compute_path_weight(route_list, normalized_values)
+# final_route_list = compute_path_weight(route_list, normalized_values)
 
 
 # ノードの数
-NODE_NUM = len(final_route_list)
+NODE_NUM = len(route_list)
 
 # 未探索のノード
 unsearched_nodes = list(range(NODE_NUM))
@@ -101,7 +113,7 @@ while(len(unsearched_nodes) != 0):  # 未探索ノードがなくなるまで繰
     min_distance = get_min_distance(distances_from_start, unsearched_nodes)
     target_index = get_target_index(min_distance, distances_from_start, unsearched_nodes)  # 未探索ノードのうちで最小のindex番号を取得
     unsearched_nodes.remove(target_index)  # ここで探索するので未探索リストから除去
-    edges_from_target_node = final_route_list[target_index]  # ターゲットになるノードからのびるエッジのリスト
+    edges_from_target_node = route_list[target_index]  # ターゲットになるノードからのびるエッジのリスト
     for index, route_dis in enumerate(edges_from_target_node):
         if route_dis != 0: # 経路のコストは通過済みの経路となるため考慮しない．
             if distances_from_start[index] > (distances_from_start[target_index] + route_dis):
