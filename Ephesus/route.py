@@ -7,7 +7,7 @@ from typing import List, Dict
 
 weight_criteria = 1.5
 # 推薦のスタートとなる映画のインデックスを引数とする
-START_INDEX = 2
+START_INDEX = 0
 
 movie_similarity = np.load("../data/movie_similarity.npy")
 movie_similarity_list = movie_similarity.tolist()
@@ -23,13 +23,33 @@ def remove_empty_list(prev_list):
     new_list = [x for x in prev_list if x != []]
     return new_list
 
-def get_route(targets):
+passed_index = [START_INDEX]
+
+def get_first_next_target_indexes(start_index):
+    next_target_index = []
+    index_weight_list = []
+    index_weight = []
+    for index, weight in enumerate(movie_similarity_list[start_index]):
+        if index == START_INDEX:
+            weight = 0
+            # index_weight.append([index, weight])
+            index_weight.append(weight)
+        elif weight < weight_criteria:
+            # index_weight.append([index, weight])
+            index_weight.append(weight)
+            next_target_index.append(index)
+    index_weight_list.append(index_weight)
+    return next_target_index, index_weight_list
+
+def get_route(targets, index_weight_list):
+    index_weight_list = index_weight_list
     next_target_indexes = []
     first_search_indexes = []
-    print("targets:", targets)
+    num = 1
     for idx in targets:
-        print("idx:",idx)
-        print("passed_index:", passed_index)
+        if num > 15:
+            print("finish")
+            return index_weight_list
         if idx in passed_index:
             continue
         target_indexes = []
@@ -40,9 +60,6 @@ def get_route(targets):
         for index, weight in enumerate(movie_similarity_list[idx]):
             if weight < weight_criteria:
                 fulfilling_condition_indexes.append(index)
-        print("**************")
-        print(fulfilling_condition_indexes)
-        print("**************")
 
         # すでに調査済みのノードに対して枝が張られているものを，除外する．
         for index in passed_index:
@@ -50,9 +67,6 @@ def get_route(targets):
                 fulfilling_condition_indexes.remove(index)
         # 現在のidxを除外する.
         fulfilling_condition_indexes.remove(idx)
-        print("--------------")
-        print(fulfilling_condition_indexes)
-        print("--------------")
 
         # targetsの中で，まだ探索していないものを調べる
         for index in targets:
@@ -68,60 +82,33 @@ def get_route(targets):
         # 先に調べるべきノードのインデックスを調べる.next_target_indexesの中の要素
         for index in first_search_indexes:
             if index in fulfilling_condition_indexes:
-                # index_weight.append([index, movie_similarity_list[idx][index]])
                 index_weight.append(movie_similarity_list[idx][index])
                 fulfilling_condition_indexes.remove(index)
             else:
                 index_weight.append(0)
 
-        print("==============")
-        print(fulfilling_condition_indexes)
         first_search_indexes.extend(fulfilling_condition_indexes)
-        print("==============")
         for index in fulfilling_condition_indexes:
-            # index_weight.append([index, movie_similarity_list[idx][index]])
             index_weight.append(movie_similarity_list[idx][index])
             target_indexes.append(index)
         next_target_indexes.append(target_indexes)
-        print("next_target_indexes:", next_target_indexes)
         index_weight_list.append(index_weight)
         passed_index.append(idx)
-        print(index_weight)
-        print("")
+        num += 1
 
     next_target_indexes = remove_empty_list(next_target_indexes)
     next_target_indexes = append_list(next_target_indexes)
-    print(next_target_indexes)
     if len(next_target_indexes) == 0:
-        return
+        return index_weight_list
     else:
-        return get_route(next_target_indexes)
-
-# 推薦のスタートとなる映画のインデックスを引数とする
-START_INDEX = 2
-
-passed_index = [START_INDEX]
-next_target_index = []
-index_weight_list = []
-
-index_weight = []
-for index, weight in enumerate(movie_similarity_list[START_INDEX]):
-    if index == START_INDEX:
-        weight = 0
-        # index_weight.append([index, weight])
-        index_weight.append(weight)
-    elif weight < weight_criteria:
-        # index_weight.append([index, weight])
-        index_weight.append(weight)
-        next_target_index.append(index)
-index_weight_list.append(index_weight)
-
-
-next_target_indexes = get_route(next_target_index)
+        return get_route(next_target_indexes, index_weight_list)
 
 def add_zero(weight_list):
+    length = len(weight_list)
+    test = len(weight_list[length - 1])
+    # NODE_NUM = len(passed_index)
+    NODE_NUM = test
     index_weight_list = []
-    NODE_NUM = len(passed_index)
     for row in weight_list:
         row_num = len(row)
         if row_num == NODE_NUM:
@@ -133,27 +120,37 @@ def add_zero(weight_list):
             index_weight_list.append(row)
     return index_weight_list
 
+next_target_index, index_weight_list = get_first_next_target_indexes(0)
+
+index_weight_list = get_route(next_target_index, index_weight_list)
+
 index_weight_list = add_zero(index_weight_list)
 
-print("")
-print("")
+node_num = len(index_weight_list)
+
+row_len = len(index_weight_list[0])
+
+remove_num = row_len - node_num
+
+new_index_weight_list = []
+for row in index_weight_list:
+    del(row[-remove_num:])
+    new_index_weight_list.append(row)
+
+
+print("passed_index:", passed_index)
 
 # for row in index_weight_list:
 #     print(row)
 #     print(len(row))
-
-# print(index_weight_list)
-# for row in index_weight_list:
-#     print(row)
 #     print("")
 
-
-
-
-
+# print(index_weight_list[length - 1])
+# length = len(index_weight_list)
+# test = len(index_weight_list[length - 1])
 
 # ノードの数
-NODE_NUM = len(index_weight_list)
+NODE_NUM = len(new_index_weight_list)
 print(NODE_NUM)
 
 # 未探索のノード
@@ -218,36 +215,3 @@ while previous_node != -1:
 
 print("-----距離-----")
 print(distances_from_start[NODE_NUM - 1])
-
-
-
-
-
-
-
-
-
-
-
-
-
-        # for index, weight in enumerate(movie_similarity_list[idx]):
-        #     if index == previous_index:
-        #         weight = 0
-        #         continue
-        #         # index_weight.append([index, weight])
-        #         # index_weight.append(weight)
-        #     elif index in passed_index:
-        #         # TODO: 既存の配列に追加する処理の関数を記述
-        #         weight = 0
-        #         # index_weight.append([index, weight])
-        #         index_weight.append(weight)
-        #     elif weight < weight_criteria:
-        #         # index_weight.append([index, weight])
-        #         index_weight.append(weight)
-        #         if index not in targets:
-        #             target_indexes.append(index)
-        # next_target_indexes.append(target_indexes)
-        # index_weight_list.append(index_weight)
-        # passed_index.append(idx)
-        # searched_frequency += 1
