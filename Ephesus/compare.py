@@ -19,52 +19,46 @@ class Feature_Types(Enum):
     MFCC = 3
 
 def get_wave_file_path_list():
-    path = "../ismir04_genre/wave"
+    path = "../ismir04_genre/waves"
     wave_files = os.listdir(path)
-    wave_path_list = []
-
+    waves_path_list = []
     for wave_file in wave_files:
         wave_path = path + "/" + wave_file
-        wave_path_list.append(wave_path)
+        waves_path_list.append(wave_path)
+    return waves_path_list
 
-    return wave_path_list
-
-# np.save('../ismir04_genre/wave_path_list', wave_path_list)
+# np.save('../ismir04_genre/waves_path_list', waves_path_list)
 
 feature_type = Feature_Types.MFCC
 
-wave_path_npy = np.load("../ismir04_genre/wave_path_list.npy")
+waves_path_npy = np.load("../ismir04_genre/waves_path_list.npy")
 
-wave_path_list = wave_path_npy.tolist()
-
-# reversed_wave_path_list = list(reversed(wave_path_list))
+waves_path_list = waves_path_npy.tolist()
 
 # 各wavファイルの振幅データ列とサンプリング周波数を取得し、リストに格納
-x_and_fs_list = []
-for path in wave_path_list:
-    x, fs = librosa.load(path, DEFAULT_FS)
-    x_and_fs_list.append((x, fs))
+def get_x_and_fs_list():
+    x_and_fs_list = []
+    for path in waves_path_list:
+        x, fs = librosa.load(path, DEFAULT_FS)
+        x_and_fs_list.append((x, fs))
+    return x_and_fs_list
 
-# np.save("../ismir04_genre/x_and_fs_list", x_and_fs_list)
-
-# test = np.load("../ismir04_genre/x_and_fs_list.npy", allow_pickle=True)
-
-# x_and_fs_list = test.tolist()
+x_and_fs_list = get_x_and_fs_list()
 
 # 使用する特徴量を抽出し、リストに格納
-feature_list = []
-for x_and_fs in x_and_fs_list:
-    x = x_and_fs[0]
-    fs = x_and_fs[1]
-    feature = librosa.feature.mfcc(x, fs)
-    feature_list.append(feature)
+def get_feature_list():
+    feature_list = []
+    for x_and_fs in x_and_fs_list:
+        x = x_and_fs[0]
+        fs = x_and_fs[1]
+        feature = librosa.feature.mfcc(x, fs)
+        feature_list.append(feature)
+    return feature_list
 
-# # # print("")
+feature_list = get_feature_list()
 
 # # (3) 類似度計算
-# # print("#3 [Evaluation]")
-
-LIST_LEN = len(wave_path_list)
+LIST_LEN = len(waves_path_list)
 
 not_need = [
     "artist_6_album_2_track_2",
@@ -82,7 +76,7 @@ not_need = [
 for index in range(LIST_LEN):
     # 比較の基準とする特徴量
     reference_feature = feature_list[index]
-    audio_name = wave_path_list[index]
+    audio_name = waves_path_list[index]
     audio_name = audio_name.split("/")[3]
     audio_name = audio_name.split(".")[0]
 

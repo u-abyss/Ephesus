@@ -35,6 +35,14 @@ import numpy as np
 # print(result)
 # print(type(result))
 
-x = np.load("../ismir04_genre/npy/reverse/artist_106_album_2_track_3.npy")
-y = np.load("../ismir04_genre/similarities/artist_26_album_1_track_2.npy")
-print(y)
+# x = np.load("../ismir04_genre/npy/reverse/artist_106_album_2_track_3.npy")
+# y = np.load("../ismir04_genre/similarities/artist_26_album_1_track_2.npy")
+# print(y)
+import glob
+
+num = 0
+files = glob.glob("../ismir04_genre/similarities/*")
+for file in files:
+    print(file)
+    print(num)
+    num += 1
