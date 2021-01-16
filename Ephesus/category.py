@@ -10,14 +10,6 @@ import numpy as np
 # print(world_df)
 # print(type(world_df))
 
-# waves_path_npy = np.load("../ismir04_genre/waves_path_list.npy")
-
-# waves_path_list = waves_path_npy.tolist()
-# print(waves_path_list[0])
-
-# target_path = waves_path_list[0]
-# files = glob.glob("../ismir04_genre/similarities/*")
-
 def create_similarities_list(files):
     similarities_list = []
     for file_path in files:
