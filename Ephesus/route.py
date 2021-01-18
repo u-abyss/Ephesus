@@ -5,12 +5,27 @@ import math
 import numpy as np
 from typing import List, Dict
 
-weight_criteria = 1.5
+# weight_criteria = 100
 # 推薦のスタートとなる映画のインデックスを引数とする
 START_INDEX = 0
 
-movie_similarity = np.load("../data/movie_similarity.npy")
-movie_similarity_list = movie_similarity.tolist()
+#TODO:なぜか10の部分が処理仕切れていない
+audio_similarty = np.load("../ismir04_genre/similarity_matrix.npy")
+audio_similarty_list = audio_similarty.tolist()
+
+def reverse_similarity_value(arr):
+    reversed_similarities_list = []
+    for row in arr:
+        new_row = []
+        for value in row:
+            if value == 0:
+                continue
+            reversed_value = 1 / value
+            new_row.append(reversed_value)
+        reversed_similarities_list.append(new_row)
+    return reversed_similarities_list
+
+audio_similarty_list = reverse_similarity_value(audio_similarty_list)
 
 def append_list(prev_list):
     new_list = []
@@ -29,13 +44,12 @@ def get_first_next_target_indexes(start_index):
     next_target_index = []
     index_weight_list = []
     index_weight = []
-    for index, weight in enumerate(movie_similarity_list[start_index]):
+    for index, weight in enumerate(audio_similarty_list[start_index]):
         if index == START_INDEX:
             weight = 0
-            # index_weight.append([index, weight])
             index_weight.append(weight)
-        elif weight < weight_criteria:
-            # index_weight.append([index, weight])
+        # elif weight < weight_criteria:
+        elif 1 < weight < 2:
             index_weight.append(weight)
             next_target_index.append(index)
     index_weight_list.append(index_weight)
@@ -47,9 +61,9 @@ def get_route(targets, index_weight_list):
     first_search_indexes = []
     num = 1
     for idx in targets:
-        if num > 15:
-            print("finish")
-            return index_weight_list
+        # if num > 150:
+        #     print("finish")
+        #     return index_weight_list
         if idx in passed_index:
             continue
         target_indexes = []
@@ -57,8 +71,9 @@ def get_route(targets, index_weight_list):
         index_weight = [0] * passed_index_len
         # インデックスがidxのノードから伸びるノードのインデックスの配列を求める.[fulfilling_condition_indexes]
         fulfilling_condition_indexes = []
-        for index, weight in enumerate(movie_similarity_list[idx]):
-            if weight < weight_criteria:
+        for index, weight in enumerate(audio_similarty_list[idx]):
+            # if weight < weight_criteria:
+            if 1 < weight < 2:
                 fulfilling_condition_indexes.append(index)
 
         # すでに調査済みのノードに対して枝が張られているものを，除外する．
@@ -66,15 +81,15 @@ def get_route(targets, index_weight_list):
             if index in fulfilling_condition_indexes:
                 fulfilling_condition_indexes.remove(index)
         # 現在のidxを除外する.
-        fulfilling_condition_indexes.remove(idx)
+        if idx in fulfilling_condition_indexes:
+            fulfilling_condition_indexes.remove(idx)
 
         # targetsの中で，まだ探索していないものを調べる
         for index in targets:
             if index in passed_index:
                 continue
             if index in fulfilling_condition_indexes:
-                # index_weight.append([index, movie_similarity_list[idx][index]])
-                index_weight.append(movie_similarity_list[idx][index])
+                index_weight.append(audio_similarty_list[idx][index])
                 fulfilling_condition_indexes.remove(index)
             else:
                 # 現在探索しているノード自身との類似度のため，0を代入する
@@ -82,14 +97,14 @@ def get_route(targets, index_weight_list):
         # 先に調べるべきノードのインデックスを調べる.next_target_indexesの中の要素
         for index in first_search_indexes:
             if index in fulfilling_condition_indexes:
-                index_weight.append(movie_similarity_list[idx][index])
+                index_weight.append(audio_similarty_list[idx][index])
                 fulfilling_condition_indexes.remove(index)
             else:
                 index_weight.append(0)
 
         first_search_indexes.extend(fulfilling_condition_indexes)
         for index in fulfilling_condition_indexes:
-            index_weight.append(movie_similarity_list[idx][index])
+            index_weight.append(audio_similarty_list[idx][index])
             target_indexes.append(index)
         next_target_indexes.append(target_indexes)
         index_weight_list.append(index_weight)
@@ -138,16 +153,23 @@ for row in index_weight_list:
     new_index_weight_list.append(row)
 
 
-print("passed_index:", passed_index)
+# print("passed_index:", passed_index)
 
-# for row in index_weight_list:
+# for row in new_index_weight_list:
 #     print(row)
-#     print(len(row))
-#     print("")
 
-# print(index_weight_list[length - 1])
-# length = len(index_weight_list)
-# test = len(index_weight_list[length - 1])
+
+new_index_weight_list = [
+    [0, 0.8, 0.6, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0.5, 0.4, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0.9, 0.2, 0.7, 0, 0, 0],
+    [0, 0, 0, 0, 0.8, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0.5, 0.4, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0.9, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0.8],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0.6],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+]
 
 # ノードの数
 NODE_NUM = len(new_index_weight_list)
@@ -195,7 +217,7 @@ while(len(unsearched_nodes) != 0):  # 未探索ノードがなくなるまで繰
     min_distance = get_min_distance(distances_from_start, unsearched_nodes)
     target_index = get_target_index(min_distance, distances_from_start, unsearched_nodes)  # 未探索ノードのうちで最小のindex番号を取得
     unsearched_nodes.remove(target_index)  # ここで探索するので未探索リストから除去
-    edges_from_target_node = index_weight_list[target_index]  # ターゲットになるノードからのびるエッジのリスト
+    edges_from_target_node = new_index_weight_list[target_index]  # ターゲットになるノードからのびるエッジのリスト
     for index, route_dis in enumerate(edges_from_target_node):
         if route_dis != 0: # 経路のコストは通過済みの経路となるため考慮しない．
             if distances_from_start[index] > (distances_from_start[target_index] + route_dis):

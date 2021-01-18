@@ -10,69 +10,51 @@ import numpy as np
 # print(world_df)
 # print(type(world_df))
 
-def create_similarities_list(files):
+# similaritiesディレクトリの全ファイルを取得する
+def get_all_files_path_in_similarites_directory():
     similarities_list = []
-    for file_path in files:
-        similarities = np.load(file_path)
-        similarities_list.append(similarities)
-    return similarities_list
+    file_pathes = glob.glob("../ismir04_genre/similarities/*")
+    return file_pathes
 
-# np.save("../ismir04_genre/test_similarity", similarities_list)
+audio_similarities_npy = np.load("../ismir04_genre/audio_similarities.npy")
 
-similarities_npy = np.load("../ismir04_genre/test_similarity.npy")
-similarities_list = similarities_npy.tolist()
-# print(similarities_list)
+audio_similarities_list = audio_similarities_npy.tolist()
 
-current_searched_num = len(similarities_list)
+SIMILARITES_NUM = len(audio_similarities_list)
 
-# 削除するべき要素の数
-removed_num = 729 - current_searched_num
+waves_path_npy = np.load("../ismir04_genre/waves_path_list.npy")
 
-# 今ある要素分まで各配列の要素を削除する
-def delete_eles(arr, num):
-    for row in arr:
-        del(row[-num:])
+# 基準となるファイルパスの順番
+waves_path_list = waves_path_npy.tolist()
 
-delete_eles(similarities_list, removed_num)
+def get_track_ids_in_order(path_lists):
+    track_ids = []
+    for path in waves_path_list:
+        splited_path = path.split("/")[3]
+        track_id = splited_path.split(".")[0]
+        track_ids.append(track_id)
+    return track_ids
 
-# 類似度行列の各配列の「10」要素の部分を性格な値で埋め合わせる
-# [0, 9, 8, 5],
-# [9, 0, 3, 6],
-# [8, 3, 0, 1],
-# [5, 6, 1, 0],
+track_ids = get_track_ids_in_order(waves_path_list)
 
+sorted_path_npy = []
 
-def replace_eles_of_similarity_list(arr):
-    new_similarities_list = []
-    for idx, row in enumerate(arr):
-        if idx == 0:
-            new_similarities_list.append(row)
-            continue
-        else:
-            replaced_eles = []
-            for i in range(idx):
-                ele = arr[i][idx]
-                replaced_eles.append(ele)
-            for i in range(idx):
-                row[i] = replaced_eles[i]
-            new_similarities_list.append(row)
-    return new_similarities_list
+for track_id in track_ids:
+    path = "../ismir04_genre/similarities/" + track_id + ".npy"
+    sorted_path_npy.append(path)
 
-new_similarities_list = replace_eles_of_similarity_list(similarities_list)
-print(new_similarities_list)
+def create_similarity_matrix():
+    audio_similarity_matrix = []
+    for path in sorted_path_npy:
+        similarity_list = np.load(path)
+        audio_similarity_matrix.append(similarity_list)
+    return audio_similarity_matrix
+
+similarity_matrix = np.load("../ismir04_genre/similarity_matrix.npy")
+print(similarity_matrix.tolist())
 
 
-
-
-
-
-
-
-
-
-
-
-
+# =========================================================================================================================================
 
 # movie_dict = {}
 # all_categories = []
