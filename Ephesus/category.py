@@ -28,8 +28,6 @@ def remove_mp3_extension(arr):
 
 
 tracks_ids = get_tracks_by_category("classical")
-print(tracks_ids)
-
 
 # ================================================================================
 
