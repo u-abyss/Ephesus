@@ -2,87 +2,111 @@ import glob
 import pandas as pd
 import numpy as np
 
-# audio_metadata_df = pd.read_csv('../ismir04_genre/metadata/development/tracklist.csv', names=('category', 'artist_id', 'album_id', 'track_id', 'track_number', 'file_path'))
+# =========================================================================================================================================
 
-# category_and_file_path_df = audio_metadata_df.loc[:,['category','file_path']]
+# categories = ["classical", "electronic", "jazz_blues", "metal_punk", "rock_pop", "world"]
 
-# world_df = category_and_file_path_df.query('category == "world"')
-# print(world_df)
-# print(type(world_df))
+audio_metadata_df = pd.read_csv('../ismir04_genre/metadata/development/tracklist.csv', names=('category', 'artist_id', 'album_id', 'track_id', 'track_number', 'file_path'))
 
-# similaritiesディレクトリの全ファイルを取得する
-def get_all_files_path_in_similarites_directory():
-    similarities_list = []
-    file_pathes = glob.glob("../ismir04_genre/similarities/*")
-    return file_pathes
+category_and_file_path_df = audio_metadata_df.loc[:,['category','file_path']]
 
-audio_similarities_npy = np.load("../ismir04_genre/audio_similarities.npy")
+def get_tracks_by_category(source_category):
+    rows = category_and_file_path_df.query('category == @source_category')
+    df_tracks = rows.loc[:, ["file_path"]]
+    tracks_list = df_tracks.values.tolist()
+    # 2次元リストを1次元リストに変換
+    tracks_list = sum(tracks_list, [])
+    tracks_list = remove_mp3_extension(tracks_list)
+    return tracks_list
 
-audio_similarities_list = audio_similarities_npy.tolist()
-
-SIMILARITES_NUM = len(audio_similarities_list)
-
-waves_path_npy = np.load("../ismir04_genre/waves_path_list.npy")
-
-# 基準となるファイルパスの順番
-waves_path_list = waves_path_npy.tolist()
-
-def get_track_ids_in_order(path_lists):
+def remove_mp3_extension(arr):
     track_ids = []
-    for path in waves_path_list:
-        splited_path = path.split("/")[3]
-        track_id = splited_path.split(".")[0]
+    for file_name in arr:
+        track_id = file_name.split(".")[0]
         track_ids.append(track_id)
     return track_ids
 
-track_ids = get_track_ids_in_order(waves_path_list)
 
-sorted_path_npy = []
-
-for track_id in track_ids:
-    path = "../ismir04_genre/similarities/" + track_id + ".npy"
-    sorted_path_npy.append(path)
-
-def create_similarity_matrix():
-    audio_similarity_matrix = []
-    for path in sorted_path_npy:
-        similarity_list = np.load(path)
-        audio_similarity_matrix.append(similarity_list)
-    return audio_similarity_matrix
-
-similarity_matrix = np.load("../ismir04_genre/similarity_matrix.npy")
-similarity_matrix_list = similarity_matrix.tolist()
+tracks_ids = get_tracks_by_category("classical")
+print(tracks_ids)
 
 
-# 今ある要素分まで各配列の要素を削除する
-def delete_eles(arr, num):
-    for row in arr:
-        del(row[-num:])
+# ================================================================================
 
-# 類似度行列の各配列の「10」要素の部分を性格な値で埋め合わせる
-# [0, 9, 8, 5],
-# [9, 0, 3, 6],
-# [8, 3, 0, 1],
-# [5, 6, 1, 0],
+# # similaritiesディレクトリの全ファイルを取得する
+# def get_all_files_path_in_similarites_directory():
+#     similarities_list = []
+#     file_pathes = glob.glob("../ismir04_genre/similarities/*")
+#     return file_pathes
 
-def replace_eles_of_similarity_list(arr):
-    new_similarities_list = []
-    for idx, row in enumerate(arr):
-        if idx == 0:
-            new_similarities_list.append(row)
-            continue
-        else:
-            replaced_eles = []
-            for i in range(idx):
-                ele = arr[i][idx]
-                replaced_eles.append(ele)
-            for i in range(idx):
-                row[i] = replaced_eles[i]
-            new_similarities_list.append(row)
-    return new_similarities_list
+# audio_similarities_npy = np.load("../ismir04_genre/audio_similarities.npy")
 
-new_similarities_list = replace_eles_of_similarity_list(similarity_matrix_list)
-print(new_similarities_list)
+# audio_similarities_list = audio_similarities_npy.tolist()
+
+# SIMILARITES_NUM = len(audio_similarities_list)
+
+# waves_path_npy = np.load("../ismir04_genre/waves_path_list.npy")
+
+# # 基準となるファイルパスの順番
+# waves_path_list = waves_path_npy.tolist()
+
+# def get_track_ids_in_order(path_lists):
+#     track_ids = []
+#     for path in waves_path_list:
+#         splited_path = path.split("/")[3]
+#         track_id = splited_path.split(".")[0]
+#         track_ids.append(track_id)
+#     return track_ids
+
+# track_ids = get_track_ids_in_order(waves_path_list)
+
+# sorted_path_npy = []
+
+# for track_id in track_ids:
+#     path = "../ismir04_genre/similarities/" + track_id + ".npy"
+#     sorted_path_npy.append(path)
+
+# def create_similarity_matrix():
+#     audio_similarity_matrix = []
+#     for path in sorted_path_npy:
+#         similarity_list = np.load(path)
+#         audio_similarity_matrix.append(similarity_list)
+#     return audio_similarity_matrix
+
+# similarity_matrix = np.load("../ismir04_genre/similarity_matrix.npy")
+# similarity_matrix_list = similarity_matrix.tolist()
+
+
+# # 今ある要素分まで各配列の要素を削除する
+# def delete_eles(arr, num):
+#     for row in arr:
+#         del(row[-num:])
+
+# # 類似度行列の各配列の「10」要素の部分を性格な値で埋め合わせる
+# # [0, 9, 8, 5],
+# # [9, 0, 3, 6],
+# # [8, 3, 0, 1],
+# # [5, 6, 1, 0],
+
+# def replace_eles_of_similarity_list(arr):
+#     new_similarities_list = []
+#     for idx, row in enumerate(arr):
+#         if idx == 0:
+#             new_similarities_list.append(row)
+#             continue
+#         else:
+#             replaced_eles = []
+#             for i in range(idx):
+#                 ele = arr[i][idx]
+#                 replaced_eles.append(ele)
+#             for i in range(idx):
+#                 row[i] = replaced_eles[i]
+#             new_similarities_list.append(row)
+#     return new_similarities_list
+
+# new_similarities_list = replace_eles_of_similarity_list(similarity_matrix_list)
+# print(new_similarities_list)
+# np.save("../ismir04_genre/final_similarity_matrix", new_similarities_list)
 
 
 # =========================================================================================================================================

@@ -7,11 +7,10 @@ from typing import List, Dict
 
 # weight_criteria = 100
 # 推薦のスタートとなる映画のインデックスを引数とする
-START_INDEX = 0
-
-#TODO:なぜか10の部分が処理仕切れていない
-audio_similarty = np.load("../ismir04_genre/similarity_matrix.npy")
+START_INDEX = 700
+audio_similarty = np.load("../ismir04_genre/final_similarity_matrix.npy")
 audio_similarty_list = audio_similarty.tolist()
+
 
 def reverse_similarity_value(arr):
     reversed_similarities_list = []
@@ -43,13 +42,14 @@ passed_index = [START_INDEX]
 def get_first_next_target_indexes(start_index):
     next_target_index = []
     index_weight_list = []
-    index_weight = []
+    index_weight = [0]
     for index, weight in enumerate(audio_similarty_list[start_index]):
         if index == START_INDEX:
-            weight = 0
-            index_weight.append(weight)
+            continue
+            # weight = 0
+            # index_weight.append(weight)
         # elif weight < weight_criteria:
-        elif 1 < weight < 2:
+        elif 1 < weight < 1.4:
             index_weight.append(weight)
             next_target_index.append(index)
     index_weight_list.append(index_weight)
@@ -61,9 +61,9 @@ def get_route(targets, index_weight_list):
     first_search_indexes = []
     num = 1
     for idx in targets:
-        # if num > 150:
-        #     print("finish")
-        #     return index_weight_list
+        if num > 19:
+            print("finish")
+            return index_weight_list
         if idx in passed_index:
             continue
         target_indexes = []
@@ -73,7 +73,7 @@ def get_route(targets, index_weight_list):
         fulfilling_condition_indexes = []
         for index, weight in enumerate(audio_similarty_list[idx]):
             # if weight < weight_criteria:
-            if 1 < weight < 2:
+            if 1 < weight < 1.4:
                 fulfilling_condition_indexes.append(index)
 
         # すでに調査済みのノードに対して枝が張られているものを，除外する．
@@ -135,7 +135,9 @@ def add_zero(weight_list):
             index_weight_list.append(row)
     return index_weight_list
 
-next_target_index, index_weight_list = get_first_next_target_indexes(0)
+next_target_index, index_weight_list = get_first_next_target_indexes(START_INDEX)
+print(index_weight_list)
+
 
 index_weight_list = get_route(next_target_index, index_weight_list)
 
@@ -159,17 +161,17 @@ for row in index_weight_list:
 #     print(row)
 
 
-new_index_weight_list = [
-    [0, 0.8, 0.6, 0, 0, 0, 0, 0, 0],
-    [0, 0, 0.5, 0.4, 0, 0, 0, 0, 0],
-    [0, 0, 0, 0.9, 0.2, 0.7, 0, 0, 0],
-    [0, 0, 0, 0, 0.8, 0, 0, 0, 0],
-    [0, 0, 0, 0, 0, 0, 0.5, 0.4, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0.9, 0],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0.8],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0.6],
-    [0, 0, 0, 0, 0, 0, 0, 0, 0],
-]
+# new_index_weight_list = [
+#     [0, 0.8, 0.6, 0, 0, 0, 0, 0, 0],
+#     [0, 0, 0.5, 0.4, 0, 0, 0, 0, 0],
+#     [0, 0, 0, 0.9, 0.2, 0.7, 0, 0, 0],
+#     [0, 0, 0, 0, 0.8, 0, 0, 0, 0],
+#     [0, 0, 0, 0, 0, 0, 0.5, 0.4, 0],
+#     [0, 0, 0, 0, 0, 0, 0, 0.9, 0],
+#     [0, 0, 0, 0, 0, 0, 0, 0, 0.8],
+#     [0, 0, 0, 0, 0, 0, 0, 0, 0.6],
+#     [0, 0, 0, 0, 0, 0, 0, 0, 0],
+# ]
 
 # ノードの数
 NODE_NUM = len(new_index_weight_list)
