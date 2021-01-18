@@ -51,49 +51,10 @@ def create_similarity_matrix():
     return audio_similarity_matrix
 
 similarity_matrix = np.load("../ismir04_genre/similarity_matrix.npy")
-
-print(similarity_matrix[728])
-
+print(similarity_matrix.tolist())
 
 
-
-
-
-
-
-
-# num = 0
-
-# for row in similarities_list:
-#     if num < 10:
-#         print(row)
-#         num += 1
-#     else:
-#         break
-
-# new_similarities_list = replace_eles_of_similarity_list(similarities_list)
-# print(new_similarities_list)
-
-# num = 0
-
-# for row in new_similarities_list:
-#     if num < 10:
-#         print(row)
-#         num += 1
-#     else:
-#         break
-
-
-
-
-
-
-
-
-
-
-
-
+# =========================================================================================================================================
 
 # movie_dict = {}
 # all_categories = []

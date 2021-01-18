@@ -5,16 +5,12 @@ import math
 import numpy as np
 from typing import List, Dict
 
-weight_criteria = 100
+# weight_criteria = 100
 # 推薦のスタートとなる映画のインデックスを引数とする
-START_INDEX = 190
+START_INDEX = 0
 
 #TODO:なぜか10の部分が処理仕切れていない
-
-# movie_similarity = np.load("../data/movie_similarity.npy")
-# movie_similarity_list = movie_similarity.tolist()
-
-audio_similarty = np.load("../ismir04_genre/test_audio_similarity.npy")
+audio_similarty = np.load("../ismir04_genre/similarity_matrix.npy")
 audio_similarty_list = audio_similarty.tolist()
 
 def reverse_similarity_value(arr):
@@ -30,10 +26,6 @@ def reverse_similarity_value(arr):
     return reversed_similarities_list
 
 audio_similarty_list = reverse_similarity_value(audio_similarty_list)
-
-for row in audio_similarty_list:
-    print(row)
-
 
 def append_list(prev_list):
     new_list = []
@@ -56,7 +48,8 @@ def get_first_next_target_indexes(start_index):
         if index == START_INDEX:
             weight = 0
             index_weight.append(weight)
-        elif weight < weight_criteria:
+        # elif weight < weight_criteria:
+        elif 1 < weight < 2:
             index_weight.append(weight)
             next_target_index.append(index)
     index_weight_list.append(index_weight)
@@ -68,9 +61,9 @@ def get_route(targets, index_weight_list):
     first_search_indexes = []
     num = 1
     for idx in targets:
-        if num > 150:
-            print("finish")
-            return index_weight_list
+        # if num > 150:
+        #     print("finish")
+        #     return index_weight_list
         if idx in passed_index:
             continue
         target_indexes = []
@@ -79,7 +72,8 @@ def get_route(targets, index_weight_list):
         # インデックスがidxのノードから伸びるノードのインデックスの配列を求める.[fulfilling_condition_indexes]
         fulfilling_condition_indexes = []
         for index, weight in enumerate(audio_similarty_list[idx]):
-            if weight < weight_criteria:
+            # if weight < weight_criteria:
+            if 1 < weight < 2:
                 fulfilling_condition_indexes.append(index)
 
         # すでに調査済みのノードに対して枝が張られているものを，除外する．
@@ -165,17 +159,17 @@ for row in index_weight_list:
 #     print(row)
 
 
-# new_index_weight_list = [
-#     [0, 0.8, 0.6, 0, 0, 0, 0, 0, 0],
-#     [0, 0, 0.5, 0.4, 0, 0, 0, 0, 0],
-#     [0, 0, 0, 0.9, 0.2, 0.7, 0, 0, 0],
-#     [0, 0, 0, 0, 0.8, 0, 0, 0, 0],
-#     [0, 0, 0, 0, 0, 0, 0.5, 0.4, 0],
-#     [0, 0, 0, 0, 0, 0, 0, 0.9, 0],
-#     [0, 0, 0, 0, 0, 0, 0, 0, 0.8],
-#     [0, 0, 0, 0, 0, 0, 0, 0, 0.6],
-#     [0, 0, 0, 0, 0, 0, 0, 0, 0],
-# ]
+new_index_weight_list = [
+    [0, 0.8, 0.6, 0, 0, 0, 0, 0, 0],
+    [0, 0, 0.5, 0.4, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0.9, 0.2, 0.7, 0, 0, 0],
+    [0, 0, 0, 0, 0.8, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0, 0.5, 0.4, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0.9, 0],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0.8],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0.6],
+    [0, 0, 0, 0, 0, 0, 0, 0, 0],
+]
 
 # ノードの数
 NODE_NUM = len(new_index_weight_list)
