@@ -69,7 +69,7 @@ route_list = [
 
 
 # ノードの数
-NODE_NUM = len(route_list)
+NODE_NUM = len(index_weight_list)
 
 # 未探索のノード
 unsearched_nodes = list(range(NODE_NUM))
@@ -113,7 +113,7 @@ while(len(unsearched_nodes) != 0):  # 未探索ノードがなくなるまで繰
     min_distance = get_min_distance(distances_from_start, unsearched_nodes)
     target_index = get_target_index(min_distance, distances_from_start, unsearched_nodes)  # 未探索ノードのうちで最小のindex番号を取得
     unsearched_nodes.remove(target_index)  # ここで探索するので未探索リストから除去
-    edges_from_target_node = route_list[target_index]  # ターゲットになるノードからのびるエッジのリスト
+    edges_from_target_node = index_weight_list[target_index]  # ターゲットになるノードからのびるエッジのリスト
     for index, route_dis in enumerate(edges_from_target_node):
         if route_dis != 0: # 経路のコストは通過済みの経路となるため考慮しない．
             if distances_from_start[index] > (distances_from_start[target_index] + route_dis):
