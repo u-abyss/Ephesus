@@ -6,7 +6,7 @@ import numpy as np
 
 # categories = ["classical", "electronic", "jazz_blues", "metal_punk", "rock_pop", "world"]
 
-audio_metadata_df = pd.read_csv('../ismir04_genre/metadata/development/tracklist.csv', names=('category', 'artist_id', 'album_id', 'track_id', 'track_number', 'file_path'))
+audio_metadata_df = pd.read_csv('../../ismir04_genre/metadata/development/tracklist.csv', names=('category', 'artist_id', 'album_id', 'track_id', 'track_number', 'file_path'))
 
 category_and_file_path_df = audio_metadata_df.loc[:,['category','file_path']]
 
