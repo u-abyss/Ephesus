@@ -60,7 +60,6 @@ def get_route(targets, index_weight_list):
     num = 1
     for idx in targets:
         if num > 20000:
-            print("finish")
             return index_weight_list
         if idx in passed_index:
             continue
@@ -106,7 +105,6 @@ def get_route(targets, index_weight_list):
             target_indexes.append(index)
         next_target_indexes.append(target_indexes)
         index_weight_list.append(index_weight)
-        print("fda")
         passed_index.append(idx)
         num += 1
 
