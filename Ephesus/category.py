@@ -51,7 +51,38 @@ def create_similarity_matrix():
     return audio_similarity_matrix
 
 similarity_matrix = np.load("../ismir04_genre/similarity_matrix.npy")
-print(similarity_matrix.tolist())
+similarity_matrix_list = similarity_matrix.tolist()
+
+
+# 今ある要素分まで各配列の要素を削除する
+def delete_eles(arr, num):
+    for row in arr:
+        del(row[-num:])
+
+# 類似度行列の各配列の「10」要素の部分を性格な値で埋め合わせる
+# [0, 9, 8, 5],
+# [9, 0, 3, 6],
+# [8, 3, 0, 1],
+# [5, 6, 1, 0],
+
+def replace_eles_of_similarity_list(arr):
+    new_similarities_list = []
+    for idx, row in enumerate(arr):
+        if idx == 0:
+            new_similarities_list.append(row)
+            continue
+        else:
+            replaced_eles = []
+            for i in range(idx):
+                ele = arr[i][idx]
+                replaced_eles.append(ele)
+            for i in range(idx):
+                row[i] = replaced_eles[i]
+            new_similarities_list.append(row)
+    return new_similarities_list
+
+new_similarities_list = replace_eles_of_similarity_list(similarity_matrix_list)
+print(new_similarities_list)
 
 
 # =========================================================================================================================================
