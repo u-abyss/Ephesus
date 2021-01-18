@@ -29,36 +29,36 @@ def get_track_ids_in_order(path_lists):
 
 track_ids = get_track_ids_in_order(waves_path_list)
 
-sorted_path_npy = []
+# sorted_path_npy = []
 
-for track_id in track_ids:
-    path = "../../ismir04_genre/similarities/" + track_id + ".npy"
-    sorted_path_npy.append(path)
+# for track_id in track_ids:
+#     path = "../../ismir04_genre/similarities/" + track_id + ".npy"
+#     sorted_path_npy.append(path)
 
-def create_similarity_matrix():
-    audio_similarity_matrix = []
-    for path in sorted_path_npy:
-        similarity_list = np.load(path)
-        audio_similarity_matrix.append(similarity_list)
-    return audio_similarity_matrix
+# def create_similarity_matrix():
+#     audio_similarity_matrix = []
+#     for path in sorted_path_npy:
+#         similarity_list = np.load(path)
+#         audio_similarity_matrix.append(similarity_list)
+#     return audio_similarity_matrix
 
-similarity_matrix = np.load("../../ismir04_genre/similarity_matrix.npy")
-similarity_matrix_list = similarity_matrix.tolist()
+# similarity_matrix = np.load("../../ismir04_genre/similarity_matrix.npy")
+# similarity_matrix_list = similarity_matrix.tolist()
 
-def replace_eles_of_similarity_list(arr):
-    new_similarities_list = []
-    for idx, row in enumerate(arr):
-        if idx == 0:
-            new_similarities_list.append(row)
-            continue
-        else:
-            replaced_eles = []
-            for i in range(idx):
-                ele = arr[i][idx]
-                replaced_eles.append(ele)
-            for i in range(idx):
-                row[i] = replaced_eles[i]
-            new_similarities_list.append(row)
-    return new_similarities_list
+# def replace_eles_of_similarity_list(arr):
+#     new_similarities_list = []
+#     for idx, row in enumerate(arr):
+#         if idx == 0:
+#             new_similarities_list.append(row)
+#             continue
+#         else:
+#             replaced_eles = []
+#             for i in range(idx):
+#                 ele = arr[i][idx]
+#                 replaced_eles.append(ele)
+#             for i in range(idx):
+#                 row[i] = replaced_eles[i]
+#             new_similarities_list.append(row)
+#     return new_similarities_list
 
-new_similarities_list = replace_eles_of_similarity_list(similarity_matrix_list)
+# new_similarities_list = replace_eles_of_similarity_list(similarity_matrix_list)

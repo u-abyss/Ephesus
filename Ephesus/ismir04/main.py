@@ -88,7 +88,6 @@ def get_recommended_track_ids(routes, passed_index):
     for i in routes:
         index = passed_index[i-1]
         indexes.append(index)
-    print(indexes)
     waves_path_npy = np.load("../../ismir04_genre/waves_path_list.npy")
     waves_path_list = waves_path_npy.tolist()
     pathes = []
@@ -99,7 +98,7 @@ def get_recommended_track_ids(routes, passed_index):
         track_id = splited_path.split(".")[0]
         pathes.append(path)
         track_ids.append(track_id)
-    print(pathes)
-    print(track_ids)
+    return track_ids
 
-get_recommended_track_ids(routes, passed_index)
+track_ids = get_recommended_track_ids(routes, passed_index)
+print(track_ids)
