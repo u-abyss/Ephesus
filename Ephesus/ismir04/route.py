@@ -6,7 +6,7 @@ import numpy as np
 from typing import List, Dict
 
 # 推薦のスタートとなる音声のインデックスを引数とする
-MAX_SIMILARITY = 1.3
+MAX_SIMILARITY = 1.8
 MIN_SIMILARITY = 1.0
 
 audio_similarty = np.load("../../ismir04_genre/final_similarity_matrix.npy")
@@ -25,6 +25,7 @@ def reverse_similarity_value(arr):
     return reversed_similarities_list
 
 audio_similarty_list = reverse_similarity_value(audio_similarty_list)
+# print(audio_similarty_list[0])
 
 def append_list(prev_list):
     new_list = []

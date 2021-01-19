@@ -4,12 +4,95 @@ import pandas as pd
 from typing import List, Dict
 
 from category import get_tracks_by_category
+from dijkstra import normalize, compute_path_weight
 from route import create_dijkstra_list
+from similarity import get_track_ids_in_order
 
-START_INDEX = 9
 
-index_weight_list, passed_index = create_dijkstra_list(START_INDEX)
-print(passed_index)
+"""
+1. ソースカテゴリの入力
+2. 1.のカテゴリに属するtrack_idのwave_path_list配列でのインデックスを求める
+3. それぞれについて提案アルゴリズムに適応できるように配列を生成する
+4. それぞれについて提案アルゴリズムを適応させる
+"""
+
+source_category = "world"
+
+# 1
+track_ids = get_tracks_by_category("metal_punk")
+
+# 2
+# 基準となるファイルパスの順番
+waves_path_npy = np.load("../../ismir04_genre/waves_path_list.npy")
+waves_path_list = waves_path_npy.tolist()
+
+# get only track_id
+track_ids_in_order = get_track_ids_in_order(waves_path_list)
+
+# start_indexの対象となるもの
+
+def get_start_indexes(track_ids):
+    start_indexes = []
+    for track_id in track_ids:
+        index = track_ids_in_order.index(track_id)
+        start_indexes.append(index)
+    return start_indexes
+
+start_indexes = get_start_indexes(track_ids)
+
+# 3
+index_weight_list, passed_index = create_dijkstra_list(start_indexes[4])
+# print("passed:", passed_index)
+
+def get_track_mp3_names(passed_index):
+    passed_track_mp3_names = []
+    for index in passed_index:
+        path = waves_path_list[index]
+        splited_path = path.split("/")[3]
+        track_id = splited_path.split(".")[0]
+        mp3_name = track_id + ".mp3"
+        passed_track_mp3_names.append(mp3_name)
+    return passed_track_mp3_names
+
+passed_track_mp3_names = get_track_mp3_names(passed_index)
+
+print(passed_track_mp3_names)
+
+audio_metadata_df = pd.read_csv('../../ismir04_genre/metadata/development/tracklist.csv', names=('category', 'artist_id', 'album_id', 'track_id', 'track_number', 'file_path'))
+category_and_file_path_df = audio_metadata_df.loc[:,['category','file_path']]
+
+def get_track_category(mp3_files):
+    categories = []
+    for mp3_file in mp3_files:
+        row = category_and_file_path_df.query('file_path == @mp3_file')
+        category = (row.category).to_list()
+        categories.append(category[0])
+    return categories
+
+categories = get_track_category(passed_track_mp3_names)
+
+def get_source_category_nums(categories):
+    source_category_nums = []
+    for category in categories:
+        if category == source_category:
+            source_category_nums.append(1)
+        else:
+            source_category_nums.append(0)
+    return source_category_nums
+
+source_category_nums = get_source_category_nums(categories)
+print(source_category_nums)
+
+"""
+1 -> 1.0
+0 -> 0.1
+"""
+
+normalized_values = normalize(source_category_nums)
+print(normalized_values)
+
+index_weight_list = compute_path_weight(index_weight_list, normalized_values)
+
 
 # ノードの数
 NODE_NUM = len(index_weight_list)
