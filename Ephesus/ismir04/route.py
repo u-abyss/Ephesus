@@ -25,7 +25,6 @@ def reverse_similarity_value(arr):
     return reversed_similarities_list
 
 audio_similarty_list = reverse_similarity_value(audio_similarty_list)
-# print(audio_similarty_list[0])
 
 def append_list(prev_list):
     new_list = []
@@ -53,14 +52,16 @@ def get_first_next_target_indexes(start_index, passed_index):
     index_weight_list.append(index_weight)
     return next_target_index, index_weight_list, passed_index
 
-def get_route(targets, index_weight_list, passed_index):
+def get_route(targets, index_weight_list, passed_index, goal_index):
     index_weight_list = index_weight_list
     next_target_indexes = []
     first_search_indexes = []
     num = 1
     for idx in targets:
-        if num > 20:
-            return index_weight_list, passed_index
+        # if idx == goal_index:
+        #     return index_weight_list, passed_index
+        # if num > 20:
+        #     return index_weight_list, passed_index
         if idx in passed_index:
             continue
         target_indexes = []
@@ -107,13 +108,15 @@ def get_route(targets, index_weight_list, passed_index):
         index_weight_list.append(index_weight)
         passed_index.append(idx)
         num += 1
+        if idx == goal_index:
+            return index_weight_list, passed_index
 
     next_target_indexes = remove_empty_list(next_target_indexes)
     next_target_indexes = append_list(next_target_indexes)
     if len(next_target_indexes) == 0:
         return index_weight_list, passed_index
     else:
-        return get_route(next_target_indexes, index_weight_list, passed_index)
+        return get_route(next_target_indexes, index_weight_list, passed_index, goal_index)
 
 def add_or_remove_eles_in_list(weight_list, passed_index):
     length = len(weight_list)
@@ -134,10 +137,10 @@ def add_or_remove_eles_in_list(weight_list, passed_index):
             index_weight_list.append(row)
     return index_weight_list
 
-def create_dijkstra_list(start_index):
+def create_dijkstra_list(start_index, goal_index):
     passed_index = [start_index]
     next_target_index, index_weight_list, passed_index = get_first_next_target_indexes(start_index, passed_index)
-    index_weight_list, passed_index = get_route(next_target_index, index_weight_list, passed_index)
+    index_weight_list, passed_index = get_route(next_target_index, index_weight_list, passed_index, goal_index)
     # 提案アルゴリズムに適応可能な配列（index_weight_list）
     index_weight_list = add_or_remove_eles_in_list(index_weight_list, passed_index)
     return index_weight_list, passed_index

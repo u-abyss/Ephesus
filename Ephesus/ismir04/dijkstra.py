@@ -30,7 +30,6 @@ def normalize(fave_categories_nums):
     normalized_values = []
     for fave_num in fave_categories_nums:
         l = (fave_num - 0) / 1
-        print(l)
         if l == 0:
             l = 0.1
         normalized_values.append(l)

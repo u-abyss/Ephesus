@@ -28,7 +28,6 @@ def remove_mp3_extension(arr):
 
 
 track_ids = get_tracks_by_category("metal_punk")
-print(track_ids)
 
 track_ids_in_order_npy = np.load("../../ismir04_genre/track_ids_in_order.npy")
 track_ids_in_order_list = track_ids_in_order_npy.tolist()
