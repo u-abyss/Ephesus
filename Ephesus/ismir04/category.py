@@ -38,3 +38,6 @@ for track_id in track_ids:
     recommended_track_indexes.append(index)
 
 print(recommended_track_indexes)
+
+
+['artist_1_album_1_track_5', 'artist_14_album_6_track_3', 'artist_75_album_1_track_2']
