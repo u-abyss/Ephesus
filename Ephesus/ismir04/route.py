@@ -6,7 +6,7 @@ import numpy as np
 from typing import List, Dict
 
 # 推薦のスタートとなる音声のインデックスを引数とする
-MAX_SIMILARITY = 1.3
+MAX_SIMILARITY = 2.0
 MIN_SIMILARITY = 1.0
 
 audio_similarty = np.load("../../ismir04_genre/final_similarity_matrix.npy")
@@ -37,8 +37,6 @@ def remove_empty_list(prev_list):
     new_list = [x for x in prev_list if x != []]
     return new_list
 
-# passed_index = [START_INDEX]
-
 def get_first_next_target_indexes(start_index, passed_index):
     next_target_index = []
     index_weight_list = []
@@ -58,10 +56,6 @@ def get_route(targets, index_weight_list, passed_index, goal_index):
     first_search_indexes = []
     num = 1
     for idx in targets:
-        # if idx == goal_index:
-        #     return index_weight_list, passed_index
-        # if num > 20:
-        #     return index_weight_list, passed_index
         if idx in passed_index:
             continue
         target_indexes = []

@@ -120,7 +120,8 @@ def run_dijkstra(index_weight_list, passed_index):
         previous_node = previous_nodes[previous_node]
 
     # print("-----距離-----")
-    # print(distances_from_start[NODE_NUM - 1])
+    print(distances_from_start[NODE_NUM - 1])
+    total_weight = distances_from_start[NODE_NUM - 1]
     routes.reverse()
     # print(routes)
 
@@ -143,4 +144,4 @@ def run_dijkstra(index_weight_list, passed_index):
 
     track_ids = get_recommended_track_ids(routes, passed_index)
     # print(track_ids)
-    return track_ids
+    return track_ids, total_weight

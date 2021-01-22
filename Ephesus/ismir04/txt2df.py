@@ -8,41 +8,56 @@ import numpy as np
 # artist_categories = np.load('../data/np_artist_name_category.npy', allow_pickle=True)
 
 # test = np.load("../ismir04_genre/eval_list.npy")
-# # print(len(test))
 
-# # x1 = np.load("../ismir04_genre/similarities/artist_122_album_1_track_3.npy")
-# # x2 = np.load("../ismir04_genre/similarities/artist_100_album_1_track_2.npy")
-# # x3 = np.load("../ismir04_genre/similarities/artist_100_album_1_track_3.npy")
-# # print(x1)
-# # print(x2)
-# # print(x3)
+# npy = np.load("../../ismir04_genre/waves_path_list.npy")
+# lst = npy.tolist()
 
-# elm_num = 3
+# track1 = lst[386]
+# track2 = lst[490]
+# track3 = lst[345]
+# print(track1)
+# print(track2)
+# print(track3)
 
-# np.random.seed(0)
-# a = np.random.rand(elm_num)
-# b = np.random.rand(elm_num)
 
-# print(type(a))
-# print(a)
-# print(a.shape)
+# test = np.load('../../ismir04_genre/final_similarity_matrix.npy')
+# print(test)
 
-# a = np.arange(3)
-# print(a)
-# b = np.arange(3)
+test = np.load("../../ismir04_genre/result/world_jazz.npy", allow_pickle=True)
+x = test.tolist()
+print(len(x))
+print(x[0][2])
 
-# result = a @ b
-# print(result)
-# print(type(result))
 
-# x = np.load("../ismir04_genre/npy/reverse/artist_106_album_2_track_3.npy")
-# y = np.load("../ismir04_genre/similarities/artist_26_album_1_track_2.npy")
-# print(y)
-import glob
+# waves_path_npy = np.load("../../ismir04_genre/waves_path_list.npy")
+# waves_path_list = waves_path_npy.tolist()
+# def get_track_ids_in_order(path_lists):
+#     track_ids = []
+#     for path in waves_path_list:
+#         splited_path = path.split("/")[3]
+#         track_id = splited_path.split(".")[0]
+#         mp3_name = track_id + ".mp3"
+#         track_ids.append(mp3_name)
+#     return track_ids
 
-num = 0
-files = glob.glob("../ismir04_genre/similarities/*")
-for file in files:
-    print(file)
-    print(num)
-    num += 1
+# track_ids = get_track_ids_in_order(waves_path_list)
+# # print(track_ids)
+
+# audio_metadata_df = pd.read_csv('../../ismir04_genre/metadata/development/tracklist.csv', names=('category', 'artist_id', 'album_id', 'track_id', 'track_number', 'file_path'))
+
+# category_and_file_path_df = audio_metadata_df.loc[:,['category','file_path']]
+
+# # print(category_and_file_path_df)
+
+# categoris = []
+
+# for mp3_name in track_ids:
+#     row = category_and_file_path_df.query("file_path == @mp3_name")
+#     category = row.category.tolist()
+#     # print(category)
+#     categoris.extend(category)
+
+# # print(len(categoris))
+
+# x = np.load("../../ismir04_genre/categories.npy")
+# print(x.tolist())
