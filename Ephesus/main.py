@@ -1,151 +1,173 @@
-import matplotlib.pyplot as plt
-import networkx as nx
+import math
 import numpy as np
 import pandas as pd
-import random
-import statistics
-from scipy import sparse
-from sklearn.metrics.pairwise import pairwise_distances
-from tqdm import tqdm
-from category import get_categorized_movies_by_user_preference, get_user_review_movieIds, get_categorized_movies_by_selected_category, get_all_user_review_numbers
-from preference import get_user_category_preference
-from color import get_color_by_user_reference, get_color_by_selected_category
-from datasets import all_reviews_df, movie_description_df
-from similarity import compute_movie_similarity
+from typing import List, Dict
 
-"""
-指定したユーザのお気にりのカテゴリトップN件を取得する関数
-取得するお気に入りのカテゴリの件数とユーザのuser_idを入力する
-"""
-TARGET_USER_ID = 539
-TARGET_CATEGORY = 'crime'
-
-top5_categories = get_user_category_preference(movie_description_df, all_reviews_df, 5, TARGET_USER_ID)
-print(top5_categories)
-
-# get_all_user_review_numbers(all_reviews_df)
-
-
-# 映画間の類似度の行列
-movie_similarity = np.load('../data/movie_similarity.npy')
-
-"""
-連結リストを求める関数
-連結リスト : どのノードがどのノードと連結しているかを表すデータ構造
-映画間の類似度が設定した閾値以上である時,　連結させる
-返り値 : 連結リスト
-
-ex
-[[1, 3, 6, 7], [5, 6, 7, 10] ... [1682, 1682]]
-各配列のindex:0のmovie_idの映画と連結しているmovie_idをそれ以降に格納.
-連結している映画がない時は,　そのmovie_idが２つ並ぶ.
-"""
-def get_linked_list():
-    linkded_list = []  # 各ノードが持つノードを列挙した二次元配列
-    similarity_criterion = 1 / 0.65
-    for idx, i in enumerate(movie_similarity):
-        similar_movies = []
-        for index, similarity_value in enumerate(i):
-            if similarity_value <= similarity_criterion:
-                similar_movies.append(index+1)  # movie_idをappendしていく
-        similar_movies.insert(0, idx+1)  # 各配列の先頭に対象の映画のmovie_idを挿入する.
-        linkded_list.append(similar_movies)
-    return linkded_list
+from category import get_tracks_by_category
+from dijkstra import normalize, compute_path_weight, run_dijkstra
+from route import create_dijkstra_list
+from similarity import get_track_ids_in_order
+from index import get_indexes
 
 
 """
-対象ユーザの視聴状況とお気に入りのカテゴリに応じて,　ノードにラベルをつける関数
+1. ソースカテゴリの入力
+2. 1.のカテゴリに属するtrack_idのwave_path_list配列でのインデックスを求める(start_indexes)
+3. ターゲットカテゴリの入力
+4. 3.のカテゴリに属するtrack_idのwave_path_list配列でのインデックスを求める(goal_indexes)
+5. 2. 4. をそうあたりで提案アルゴリズムを適応できるような配列を生成する
+6. 5.で求めた配列に対して提案アルゴリズムを適応させる（類似度のみを考慮）(類似度 + ノードが属するソース分野の数を考慮)
 """
-def get_node_color(categorized_movies, categorized_movies_by_selected_category):
-    color_map = []
-    MAX_MOVIE_ID = 1683
-    for node in range(1, MAX_MOVIE_ID):
-        label = categorized_movies[node - 1]
-        if label == 'watch_fave' or label == 'watch_not_fave':
-            color_map.append(get_color_by_user_reference(node, categorized_movies))
+SOURCE_CATEGORY = "rock_pop"
+TARGET_CATEGORY = "jazz_blues"
+
+# 基準となるファイルパスの順番
+waves_path_npy = np.load("../../ismir04_genre/waves_path_list.npy")
+waves_path_list = waves_path_npy.tolist()
+
+# get only track_id
+track_ids_in_order = get_track_ids_in_order(waves_path_list)
+
+# ターゲットカテゴリに属するtrack_idのwave_path_list配列でのインデックスを求める
+
+target_category_track_ids = get_tracks_by_category(TARGET_CATEGORY)
+# goal_indexの対象となるもの
+goal_indexes = get_indexes(target_category_track_ids, track_ids_in_order)
+
+# 1
+source_category_track_ids = get_tracks_by_category(SOURCE_CATEGORY)
+
+# 2
+# start_indexの対象となるもの
+start_indexes = get_indexes(source_category_track_ids, track_ids_in_order)
+print("fdafafada:",len(start_indexes))
+
+"""
+ある一点のスタート地点（ソースカテゴリ）から
+到達しうる全てのゴール地点（ターゲットカテゴリ）までグラフ構造を探索する
+"""
+
+print(start_indexes[0])
+print(goal_indexes)
+
+# all_results = []
+# for start_index in start_indexes:
+results = []
+for goal_index in goal_indexes:
+    index_weight_list, passed_index = create_dijkstra_list(start_indexes[2], goal_index)
+    results.append([index_weight_list, passed_index])
+# all_results.append(results)
+
+
+
+# all_results = []
+# for start_index in start_indexes:
+#     results = []
+#     for goal_index in goal_indexes:
+#         index_weight_list, passed_index = create_dijkstra_list(start_indexes[start_index], goal_index)
+#         results.append([index_weight_list, passed_index])
+# all_results.append(results)
+
+# np.save("../../ismir04_genre/result/world_classical", all_results)
+
+# ================================================================================================================================================
+
+
+"""
+通過したtrackのインデックスから，track_id + .mp3の形式に変換する関数
+"""
+def get_passed_mp3_files(passed_index):
+    passed_mp3_files = []
+    for index in passed_index:
+        path = waves_path_list[index]
+        splited_path = path.split("/")[3]
+        track_id = splited_path.split(".")[0]
+        mp3_name = track_id + ".mp3"
+        passed_mp3_files.append(mp3_name)
+    return passed_mp3_files
+
+"""
+mp3ファイルから，そのtrackが属するカテゴリを返す関数
+"""
+def get_track_category(mp3_files):
+    categories = []
+    for mp3_file in mp3_files:
+        row = category_and_file_path_df.query('file_path == @mp3_file')
+        category = (row.category).to_list()
+        categories.append(category[0])
+    return categories
+
+"""
+グラフ構造上における各ノードが属するソースカテゴリの数の配列を返す関数
+"""
+def get_source_category_nums(categories):
+    source_category_nums = []
+    for category in categories:
+        if category == SOURCE_CATEGORY:
+            source_category_nums.append(1)
         else:
-            label = categorized_movies_by_selected_category[node-1]
-            color_map.append(get_color_by_selected_category(label))
-    return color_map
+            source_category_nums.append(0)
+    return source_category_nums
 
-
-"""
-重要度の低い映画を削除する関数.
-つながりのある映画がない映画を重要度の低い映画とする.
-"""
-def get_unused_nodes():
-    linkded_list = get_linked_list()
-    unused_nodes = []
-    MAX_MOVIE_ID = 1682
-    for i in range(1, MAX_MOVIE_ID):
-        if len(linkded_list[i-1]) == 2:
-            unused_nodes.append(i)
-    return unused_nodes
-
-def show_graph():
-    G = nx.Graph()
-    categorized_movies = get_categorized_movies_by_user_preference(movie_description_df, top5_categories, all_reviews_df, TARGET_USER_ID)
-    categorized_movies_by_selected_category = get_categorized_movies_by_selected_category('action', all_reviews_df, movie_description_df, TARGET_USER_ID)
-    linkded_list = get_linked_list()
-    for node in linkded_list:
-        nx.add_star(G, node)
-    color_map = get_node_color(categorized_movies, categorized_movies_by_selected_category)
-    unused_nodes = get_unused_nodes()
-    for i in unused_nodes:
-        G.remove_node(i)
-    for i in sorted(unused_nodes, reverse=True):  # reverse=True to prevent offset of index
-        color_map.pop(i)
-    nx.draw_networkx(G, node_color=color_map, node_size=200, font_size=4, width=0.2, style='dotted')
-    plt.show()
-
-# show_graph()
+audio_metadata_df = pd.read_csv('../../ismir04_genre/metadata/development/tracklist.csv', names=('category', 'artist_id', 'album_id', 'track_id', 'track_number', 'file_path'))
+category_and_file_path_df = audio_metadata_df.loc[:,['category','file_path']]
 
 """
-重り付きのネットワーク図を描画するための配列を求める関数
-
-返り値 : ノード間の重さについてのタプル型の要素を格納した配列を格納した二次元配列
-        ネットワーク図を描画するに当たって,　用いるmovie_idの配列
+任意のスタート地点一点から到達する可能性のあるターゲットカテゴリに属するノードまでの経路を計算する
 """
 
-def get_edge_weight():
-    weighted_edge_list = [] # 2次元配列
-    used_node_indexes = []
-    for index_y, row in enumerate(movie_similarity):
-        weight_tuple_list = []
-        for index_x, similarity in enumerate(row):
-            if index_x >= index_y + 1: # 各行に対して,　全ての列要素について調べると被りが出てしまうため,　各行において比較対象となる列の要素は,　その行数以上の列とする
-                if similarity <= 1 / 0.65:
-                    weighted_egde_tuple = (index_y+1, index_x+1, similarity) # (node, node, weight)
-                    weight_tuple_list.append(weighted_egde_tuple)
-                    used_node_indexes.append(index_y)
-                    used_node_indexes.append(index_x)
-        if weight_tuple_list != []:
-            weighted_edge_list.append(weight_tuple_list)
-    unique_used_node_indexes = list(set(used_node_indexes))
-    orderd_unique_used_node_indexes = sorted(unique_used_node_indexes)
-    return weighted_edge_list, orderd_unique_used_node_indexes
+def get_all_recommended_routes(results, param):
+    # min_total_weight = 100
+    RESULT_LEN = len(results)
+    for idx in range(RESULT_LEN):
+        # アルゴリズムの適応対象となるグラフ構築をする際のデータ
+        result = results[idx]
+        index_weight_list = result[0]
+        passed_index = result[1]
 
-def nx_dijkstra():
-    START_NODE_NUMBER = 1
-    GOAL_NODE_NUMBER = 100
-    categorized_movies = get_categorized_movies_by_user_preference(movie_description_df, top5_categories, all_reviews_df, TARGET_USER_ID)
-    categorized_movies_by_selected_category = get_categorized_movies_by_selected_category(TARGET_CATEGORY, all_reviews_df, movie_description_df, TARGET_USER_ID)
-    weighted_egde_list, orderd_unique_used_node_indexes = get_edge_weight()
+        # 全ノードのmp3名を取得する
+        passed_track_mp3_names = get_passed_mp3_files(passed_index)
 
-    color_map = get_node_color(categorized_movies, categorized_movies_by_selected_category)
+        # mp3名からその音楽のカテゴリを取得する
+        categories = get_track_category(passed_track_mp3_names)
 
-    G = nx.Graph()
-    for tuple_list in weighted_egde_list:
-        G.add_weighted_edges_from(tuple_list)
-    print(nx.dijkstra_path(G, START_NODE_NUMBER, GOAL_NODE_NUMBER, weight='weight'))
-    # print(G[START_NODE_NUMBER][GOAL_NODE_NUMBER]['weight'])
+        # エッジの重みを計算する際のパラメータが0の時は，類似度のみを考慮する．（各ノードが属するソースカテゴリの数は考慮しない）
+        if param == 0:
+            # ダイクストラアルゴリズムを実行する
+            recommended_track_ids, total_weight = run_dijkstra(index_weight_list, passed_index)
+            print("類似度のみ:",recommended_track_ids)
+        else:
+            # 各ノードがいくつのソースカテゴリに属しているのかを調べる
+            source_category_nums = get_source_category_nums(categories)
+            normalized_values = normalize(source_category_nums)
+            computed_index_weight_list = compute_path_weight(index_weight_list, normalized_values, param)
 
-    new_color_map = []
-    for idx in orderd_unique_used_node_indexes:
-        label = color_map[idx]
-        new_color_map.append(label)
+            # ダイクストラアルゴリズムを実行する
+            # recommended_track_ids, total_weight = run_dijkstra(index_weight_list, passed_index)
+            # print("x:",recommended_track_ids)
+            recommended_track_ids, total_weight = run_dijkstra(computed_index_weight_list, passed_index)
+            print(recommended_track_ids, total_weight)
+            # if total_weight < min_total_weight:
+            #     min_total_weight = total_weight
+            # print("y:",recommended_track_ids)
+            # print("========================================================================")
+        # return recommended_track_ids, min_total_weight
 
-    nx.draw_networkx(G, node_color=new_color_map, node_size=200, font_size=4, width=0.2, style='dotted')
-    plt.show()
 
-nx_dijkstra()
+
+# all_results = np.load("../../ismir04_genre/result/world_jazz.npy", allow_pickle=True)
+
+# print(results)
+
+get_all_recommended_routes(results, 0.5)
+
+# min_weight_and_recommened_track_ids = []
+# for results in all_results:
+#     # start_indexesの中の任意のstart_indexからターゲットカテゴリに属するノードまでの最小コスト(total_weight)
+#     _recommended_track_ids, _min_total_weight = get_all_recommended_routes(results, 0.5)
+#     min_weight_and_recommened_track_ids.append([_recommended_track_ids, _min_total_weight])
+
+# # print(min_weight_and_recommened_track_ids)
+# sorted_min_weight_and_recommened_track_ids = sorted(min_weight_and_recommened_track_ids, reverse=True, key=lambda x: x[1])
+# print(sorted_min_weight_and_recommened_track_ids)
+# # get_all_recommended_routes(results, 0)

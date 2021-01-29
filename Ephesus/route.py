@@ -6,7 +6,7 @@ import numpy as np
 from typing import List, Dict
 
 # 推薦のスタートとなる音声のインデックスを引数とする
-MAX_SIMILARITY = 2.0
+MAX_SIMILARITY = 1.3
 MIN_SIMILARITY = 1.0
 
 audio_similarty = np.load("../../ismir04_genre/final_similarity_matrix.npy")

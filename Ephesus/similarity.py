@@ -1,36 +1,64 @@
-import numpy as np
+import glob
 import pandas as pd
-
-# from sklearn.metrics.pairwise import pairwise_distance
-from datasets import all_reviews_df
-from sklearn.metrics import pairwise_distances
+import numpy as np
 
 """
-各映画同士のコサイン類似度を求める関数.
-映画数✖️映画数の行列を返す.
-1行は映画
-ベクトルの中身はその映画と,　他の全ての映画とのコサイン類似度の値.
+１ベクトルが全ての音楽との類似度の値を要素とする行列を作成する関数
+
+"../ismir04_genre/final_similarity_matrix"へnpy形式で保存する．
+
+ex>
+# [0, 9, 8, 5],
+# [9, 0, 3, 6],
+# [8, 3, 0, 1],
+# [5, 6, 1, 0],
 """
 
-def compute_movie_similarity() -> np.ndarray:
-    # アイテム同士の類似度を計算するためにデータをitem_id✖️user_idの行列に変換する
-    items = all_reviews_df.sort_values('item_id').item_id.unique()
-    users = all_reviews_df.user_id.unique()
-    shape = (all_reviews_df.max().loc['item_id'],all_reviews_df.max().loc['user_id'])
-    user_rating_matrix = np.zeros(shape)  # 全ての要素が0で初期化された映画数✖️ユーザ数の行列を定義
-    for i in all_reviews_df.index:
-        row = all_reviews_df.loc[i]
-        user_rating_matrix[row['item_id'] - 1, row['user_id'] - 1] = row['rating']
-    # コサイン類似度によるアイテム同士の類似度の配列
-    # ダイクストラ法を適応するために,　類似度の逆数をとる
-    movies_similarities = 1 / (1 - pairwise_distances(user_rating_matrix, metric='cosine'))
-    # movies_similarities = 1 - pairwise_distances(user_rating_matrix, metric='cosine')
-    np.fill_diagonal(movies_similarities, 0)  # 対角線上の要素を0に上書きする
-    return movies_similarities
+waves_path_npy = np.load("../../ismir04_genre/waves_path_list.npy")
 
+# 基準となるファイルパスの順番
+waves_path_list = waves_path_npy.tolist()
 
-def save_as_binary(f):
-    np.save('../data/movie_similarity', f)
+def get_track_ids_in_order(path_lists):
+    track_ids = []
+    for path in waves_path_list:
+        splited_path = path.split("/")[3]
+        track_id = splited_path.split(".")[0]
+        track_ids.append(track_id)
+    return track_ids
 
-f = compute_movie_similarity()
-save_as_binary(f)
+track_ids = get_track_ids_in_order(waves_path_list)
+
+# sorted_path_npy = []
+
+# for track_id in track_ids:
+#     path = "../../ismir04_genre/similarities/" + track_id + ".npy"
+#     sorted_path_npy.append(path)
+
+# def create_similarity_matrix():
+#     audio_similarity_matrix = []
+#     for path in sorted_path_npy:
+#         similarity_list = np.load(path)
+#         audio_similarity_matrix.append(similarity_list)
+#     return audio_similarity_matrix
+
+# similarity_matrix = np.load("../../ismir04_genre/similarity_matrix.npy")
+# similarity_matrix_list = similarity_matrix.tolist()
+
+# def replace_eles_of_similarity_list(arr):
+#     new_similarities_list = []
+#     for idx, row in enumerate(arr):
+#         if idx == 0:
+#             new_similarities_list.append(row)
+#             continue
+#         else:
+#             replaced_eles = []
+#             for i in range(idx):
+#                 ele = arr[i][idx]
+#                 replaced_eles.append(ele)
+#             for i in range(idx):
+#                 row[i] = replaced_eles[i]
+#             new_similarities_list.append(row)
+#     return new_similarities_list
+
+# new_similarities_list = replace_eles_of_similarity_list(similarity_matrix_list)
