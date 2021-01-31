@@ -22,7 +22,7 @@ SOURCE_CATEGORY = "rock_pop"
 TARGET_CATEGORY = "jazz_blues"
 
 # 基準となるファイルパスの順番
-waves_path_npy = np.load("../../ismir04_genre/waves_path_list.npy")
+waves_path_npy = np.load("../ismir04_genre/waves_path_list.npy")
 waves_path_list = waves_path_npy.tolist()
 
 # get only track_id
@@ -54,7 +54,7 @@ print(goal_indexes)
 # for start_index in start_indexes:
 results = []
 for goal_index in goal_indexes:
-    index_weight_list, passed_index = create_dijkstra_list(start_indexes[2], goal_index)
+    index_weight_list, passed_index = create_dijkstra_list(start_indexes[6], goal_index)
     results.append([index_weight_list, passed_index])
 # all_results.append(results)
 
@@ -109,7 +109,7 @@ def get_source_category_nums(categories):
             source_category_nums.append(0)
     return source_category_nums
 
-audio_metadata_df = pd.read_csv('../../ismir04_genre/metadata/development/tracklist.csv', names=('category', 'artist_id', 'album_id', 'track_id', 'track_number', 'file_path'))
+audio_metadata_df = pd.read_csv('../ismir04_genre/metadata/development/tracklist.csv', names=('category', 'artist_id', 'album_id', 'track_id', 'track_number', 'file_path'))
 category_and_file_path_df = audio_metadata_df.loc[:,['category','file_path']]
 
 """

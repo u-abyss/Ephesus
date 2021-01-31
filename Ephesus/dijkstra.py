@@ -130,7 +130,7 @@ def run_dijkstra(index_weight_list, passed_index):
             for i in routes:
                 index = passed_index[i-1]
                 indexes.append(index)
-            waves_path_npy = np.load("../../ismir04_genre/waves_path_list.npy")
+            waves_path_npy = np.load("../ismir04_genre/waves_path_list.npy")
             waves_path_list = waves_path_npy.tolist()
             pathes = []
             track_ids = []

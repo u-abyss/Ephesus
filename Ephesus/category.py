@@ -6,7 +6,7 @@ import numpy as np
 
 # categories = ["classical", "electronic", "jazz_blues", "metal_punk", "rock_pop", "world"]
 
-audio_metadata_df = pd.read_csv('../../ismir04_genre/metadata/development/tracklist.csv', names=('category', 'artist_id', 'album_id', 'track_id', 'track_number', 'file_path'))
+audio_metadata_df = pd.read_csv('../ismir04_genre/metadata/development/tracklist.csv', names=('category', 'artist_id', 'album_id', 'track_id', 'track_number', 'file_path'))
 
 category_and_file_path_df = audio_metadata_df.loc[:,['category','file_path']]
 
@@ -29,7 +29,7 @@ def remove_mp3_extension(arr):
 
 track_ids = get_tracks_by_category("metal_punk")
 
-track_ids_in_order_npy = np.load("../../ismir04_genre/track_ids_in_order.npy")
+track_ids_in_order_npy = np.load("../ismir04_genre/track_ids_in_order.npy")
 track_ids_in_order_list = track_ids_in_order_npy.tolist()
 
 recommended_track_indexes = []
@@ -40,4 +40,4 @@ for track_id in track_ids:
 print(recommended_track_indexes)
 
 
-['artist_1_album_1_track_5', 'artist_14_album_6_track_3', 'artist_75_album_1_track_2']
+# ['artist_1_album_1_track_5', 'artist_14_album_6_track_3', 'artist_75_album_1_track_2']

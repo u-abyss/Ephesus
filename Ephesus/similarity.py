@@ -14,7 +14,7 @@ ex>
 # [5, 6, 1, 0],
 """
 
-waves_path_npy = np.load("../../ismir04_genre/waves_path_list.npy")
+waves_path_npy = np.load("../ismir04_genre/waves_path_list.npy")
 
 # 基準となるファイルパスの順番
 waves_path_list = waves_path_npy.tolist()

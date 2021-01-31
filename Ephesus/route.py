@@ -9,7 +9,7 @@ from typing import List, Dict
 MAX_SIMILARITY = 1.3
 MIN_SIMILARITY = 1.0
 
-audio_similarty = np.load("../../ismir04_genre/final_similarity_matrix.npy")
+audio_similarty = np.load("../ismir04_genre/final_similarity_matrix.npy")
 audio_similarty_list = audio_similarty.tolist()
 
 def reverse_similarity_value(arr):
