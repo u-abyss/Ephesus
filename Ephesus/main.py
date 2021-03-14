@@ -19,7 +19,7 @@ from index import get_indexes
 6. 5.で求めた配列に対して提案アルゴリズムを適応させる（類似度のみを考慮）(類似度 + ノードが属するソース分野の数を考慮)
 """
 SOURCE_CATEGORY = "rock_pop"
-TARGET_CATEGORY = "jazz_blues"
+TARGET_CATEGORY = "classical"
 
 # 基準となるファイルパスの順番
 waves_path_npy = np.load("../ismir04_genre/waves_path_list.npy")
@@ -54,7 +54,7 @@ print(goal_indexes)
 # for start_index in start_indexes:
 results = []
 for goal_index in goal_indexes:
-    index_weight_list, passed_index = create_dijkstra_list(start_indexes[6], goal_index)
+    index_weight_list, passed_index = create_dijkstra_list(start_indexes[34], goal_index)
     results.append([index_weight_list, passed_index])
 # all_results.append(results)
 

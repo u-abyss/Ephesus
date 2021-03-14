@@ -27,8 +27,6 @@ def get_wave_file_path_list():
         waves_path_list.append(wave_path)
     return waves_path_list
 
-# np.save('../ismir04_genre/waves_path_list', waves_path_list)
-
 feature_type = Feature_Types.MFCC
 
 waves_path_npy = np.load("../ismir04_genre/waves_path_list.npy")
@@ -60,18 +58,6 @@ feature_list = get_feature_list()
 # # (3) 類似度計算
 LIST_LEN = len(waves_path_list)
 
-not_need = [
-    "artist_6_album_2_track_2",
-    "artist_26_album_1_track_2",
-    "artist_33_album_2_track_3",
-    "artist_40_album_3_track_3",
-    "artist_73_album_1_track_5",
-    "artist_77_album_1_track_2",
-    "artist_84_album_1_track_2",
-    "artist_115_album_3_track_2",
-    "artist_122_album_1_track_3",
-    "artist_124_album_4_track_2",
-]
 
 for index in range(LIST_LEN):
     # 比較の基準とする特徴量
